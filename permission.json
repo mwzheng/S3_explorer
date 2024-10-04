@@ -1,22 +1,24 @@
 {
-  "file_id": "string",
-  "file_name": "string",
-  "owner": {
-    "user_id": "string",
-    "username": "string"
-  },
-  "shared_with": [
+  "files": [
     {
-      "user_id": "string",
-      "username": "string",
-      "shared_on": "string",
-      "permissions": {
-        "read": "boolean",
-        "write": "boolean"
-      }
+      "name": "",
+      "owner": "",
+      "shared_with": [
+        {
+          "user": "",
+          "permissions": "read/write"
+        }
+      ]
+    },
+    {
+      "name": "",
+      "owner": "",
+      "shared_with": [
+        {
+          "user": "",
+          "permissions": "read/write"
+        }
+      ]
     }
-  ],
-  "timestamp": "string",
-  "description": "string",
-  "tags": ["string"]
+  ]
 }
