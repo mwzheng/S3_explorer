@@ -8,6 +8,7 @@ import {
 } from "./s3_backend.js";
 import { checkOwner } from "./checkOwner.js";
 import cors from "cors";
+import e from "express";
 
 const app = express();
 app.use(cors());
@@ -19,8 +20,11 @@ app.use(express.urlencoded({ extended: true }));
 
 // Endpoint to list all objects from S3 bucket
 app.get("/list-s3-objects", async (req, res) => {
+  const { prefix } = req.query;
+
   try {
-    const data = await listS3Objects();
+    const data = await listS3Objects(prefix);
+
     res.json(data);
   } catch (err) {
     console.error("Error fetching bucket objects:", err);
@@ -69,6 +73,10 @@ app.delete("/delete-s3-object/:objectKey", async (req, res) => {
 // Sharing the folder (Owner-only)
 app.post("/share-folder", checkOwner, async (req, res) => {
   const { folderName, sharedWith, permissionType } = req.body; // permissionType can be 'read' or 'write'
+
+  console.log(
+    `> Folder Name: ${folderName}, Shared With: ${sharedWith}, Permission Type: ${permissionType}`
+  );
 
   try {
     const permissions = await getPermissions(folderName);

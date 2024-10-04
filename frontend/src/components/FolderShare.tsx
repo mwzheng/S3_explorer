@@ -18,11 +18,14 @@ const FolderShare: React.FC<FolderShareProps> = ({ folderName, onClose }) => {
     };
 
     try {
-      const response = await fetch("http://localhost:5555/share-folder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_ENDPOINT}/share-folder`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
       console.log("Folder shared:", response);
       onClose(); // Close the form after sharing
     } catch (error) {
@@ -31,7 +34,10 @@ const FolderShare: React.FC<FolderShareProps> = ({ folderName, onClose }) => {
   };
 
   return (
-    <form onSubmit={handleShare} className="border p-2">
+    <form
+      onSubmit={handleShare}
+      className="border p-2"
+    >
       <h3 className="font-bold">Share {folderName}</h3>
       <input
         type="text"
@@ -49,7 +55,10 @@ const FolderShare: React.FC<FolderShareProps> = ({ folderName, onClose }) => {
         <option value="write">Write</option>
       </select>
       <div className="mt-4 flex justify-between">
-        <button type="submit" className="bg-blue-500 text-white">
+        <button
+          type="submit"
+          className="bg-blue-500 text-white"
+        >
           Share
         </button>
         <button

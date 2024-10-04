@@ -8,7 +8,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     // Fetch the list of files from the backend (S3)
-    fetch("http://localhost:5555/list-s3-objects")
+    fetch(`${process.env.REACT_APP_API_ENDPOINT}/list-s3-objects`)
       .then((response) => response.json())
       .then((data) => setFiles(data))
       .catch((error) => console.error("Error fetching files:", error));
@@ -19,7 +19,6 @@ const App: React.FC = () => {
       <h1 className="text-4xl text-center font-bold mb-4">S3 File Explorer</h1>
       <FileUpload />
       <S3FileList files={files} />
-
       <FileDelete />
       <hr />
     </div>
