@@ -1,0 +1,22 @@
+{
+  "file_id": "string",
+  "file_name": "string",
+  "owner": {
+    "user_id": "string",
+    "username": "string"
+  },
+  "shared_with": [
+    {
+      "user_id": "string",
+      "username": "string",
+      "shared_on": "string",
+      "permissions": {
+        "read": "boolean",
+        "write": "boolean"
+      }
+    }
+  ],
+  "timestamp": "string",
+  "description": "string",
+  "tags": ["string"]
+}

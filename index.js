@@ -1,9 +1,23 @@
 import express from "express";
-import { listS3Objects } from "./s3_backend.js";
+import multer from "multer";
+import {
+  listS3Objects,
+  uploadS3Object,
+  deleteS3Object,
+  getPermissions,
+} from "./s3_backend.js";
+import { checkOwner } from "./checkOwner.js";
+import cors from "cors";
 
 const app = express();
+app.use(cors());
 const port = 5555;
+const upload = multer(); // For handling file uploads
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Endpoint to list all objects from S3 bucket
 app.get("/list-s3-objects", async (req, res) => {
   try {
     const data = await listS3Objects();
@@ -11,6 +25,62 @@ app.get("/list-s3-objects", async (req, res) => {
   } catch (err) {
     console.error("Error fetching bucket objects:", err);
     res.status(500).send("Error fetching bucket objects: " + err);
+  }
+});
+
+app.get("/list-folder-details/:folderName", async (req, res) => {
+  const { folderName } = req.params;
+
+  try {
+    const permissions = await getPermissions(folderName);
+    res.json({
+      owner: permissions.owner,
+      sharedWith: permissions.sharedWith,
+    });
+  } catch (error) {
+    console.error("Error fetching folder details:", error);
+    res.status(500).send("Error fetching folder details: " + error);
+  }
+});
+
+// Endpoint to upload a file to S3
+app.post("/upload-s3-object", upload.single("file"), async (req, res) => {
+  try {
+    const data = await uploadS3Object(req.file);
+    res.json(data);
+  } catch (err) {
+    console.error("Error uploading file:", err);
+    res.status(500).send("Error uploading file: " + err);
+  }
+});
+
+// Endpoint to delete a file from S3
+app.delete("/delete-s3-object/:objectKey", async (req, res) => {
+  const { objectKey } = req.params;
+  try {
+    await deleteS3Object(objectKey);
+    res.sendStatus(204); // No content
+  } catch (err) {
+    console.error("Error deleting object:", err);
+    res.status(500).send("Error deleting object: " + err);
+  }
+});
+
+// Sharing the folder (Owner-only)
+app.post("/share-folder", checkOwner, async (req, res) => {
+  const { folderName, sharedWith, permissionType } = req.body; // permissionType can be 'read' or 'write'
+
+  try {
+    const permissions = await getPermissions(folderName);
+
+    // Update the permissions JSON file with new user permission
+    permissions.sharedWith[sharedWith] = permissionType;
+
+    await updatePermissions(folderName, permissions);
+    res.send("Folder shared successfully.");
+  } catch (error) {
+    console.error("Error sharing folder:", error);
+    res.status(500).send("Error sharing folder: " + error);
   }
 });
 
