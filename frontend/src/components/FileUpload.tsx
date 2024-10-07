@@ -15,10 +15,13 @@ const FileUpload: React.FC = () => {
     formData.append("file", selectedFile);
 
     try {
-      const response = await fetch("http://localhost:5555/upload-s3-object", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_ENDPOINT}/upload-s3-object`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
       console.log("File uploaded:", response);
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -26,8 +29,14 @@ const FileUpload: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleUpload} className="py-8">
-      <input type="file" onChange={handleFileChange} />
+    <form
+      onSubmit={handleUpload}
+      className="py-8"
+    >
+      <input
+        type="file"
+        onChange={handleFileChange}
+      />
       <button
         type="submit"
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"

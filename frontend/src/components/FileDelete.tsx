@@ -6,7 +6,7 @@ const FileDelete = () => {
   const handleDelete = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5555/delete-s3-object/${fileKey}`,
+        `${process.env.REACT_APP_API_ENDPOINT}/delete-s3-object/${fileKey}`,
         {
           method: "DELETE",
         }

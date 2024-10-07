@@ -20,6 +20,8 @@ const client = new S3Client({
 
 // Helper function to read and update permissions.json
 export async function getPermissions(folderName) {
+  console.log("> Get Permissions for folder:", folderName);
+
   const params = {
     Bucket: process.env.BUCKET,
     Key: `${folderName}/permissions.json`,
@@ -65,9 +67,10 @@ export async function updatePermissions(folderName, newPermissions) {
   }
 }
 
-export async function listS3Objects() {
+export async function listS3Objects(prefix = "") {
   const input = {
     Bucket: process.env.BUCKET,
+    Prefix: prefix,
   };
 
   const command = new ListObjectsCommand(input);
