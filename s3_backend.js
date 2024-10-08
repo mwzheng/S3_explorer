@@ -20,13 +20,10 @@ const client = new S3Client({
 
 // Helper function to read and update permissions.json
 export async function getPermissions(folderName) {
-  console.log("> Get Permissions for folder:", folderName);
-
   const params = {
     Bucket: process.env.BUCKET,
-    Key: `${folderName}/permissions.json`,
+    Key: `${folderName}/permissions.json`, // Fetch permissions at folder level
   };
-
   const command = new GetObjectCommand(params);
 
   try {
@@ -61,6 +58,10 @@ export async function updatePermissions(folderName, newPermissions) {
 
   try {
     await client.send(command);
+    console.log(
+      `Updated permissions for folder "${folderName}":`,
+      newPermissions
+    );
   } catch (error) {
     console.error("Error updating permissions:", error);
     throw error;
