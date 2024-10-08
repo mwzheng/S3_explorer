@@ -67,10 +67,7 @@ const S3FileList: React.FC<S3FileListProps> = (props) => {
                 onClick={() => openFolder(file)}
               />
             ) : (
-              <FaFile
-                size={40}
-                className="mx-auto text-gray-500"
-              />
+              <FaFile size={40} className="mx-auto text-gray-500" />
             )}
             <p className="mt-2">{file.name || file.Key}</p>
             <p className="mt-1">Date Modified: {file.LastModified}</p>
@@ -90,10 +87,7 @@ const S3FileList: React.FC<S3FileListProps> = (props) => {
 
             {selectedFileForSharing === file.Key && (
               <div className="absolute bottom-full right-0 mb-2 bg-gray-100 p-4 shadow-md rounded-lg">
-                <FolderShare
-                  folderName={file.Key}
-                  onClose={handleCloseShare}
-                />
+                <FolderShare folderName={file.Key} onClose={handleCloseShare} />
               </div>
             )}
           </div>
