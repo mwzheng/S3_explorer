@@ -22,7 +22,7 @@ const client = new S3Client({
 export async function getPermissions(folderName) {
   const params = {
     Bucket: process.env.BUCKET,
-    Key: `${folderName}/permissions.json`, // Fetch permissions at folder level
+    Key: `${folderName}permissions.json`, // Fetch permissions at folder level
   };
   const command = new GetObjectCommand(params);
 
