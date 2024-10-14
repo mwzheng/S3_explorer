@@ -11,7 +11,8 @@ import cors from "cors";
 import e from "express";
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: "*" }));
+// app.use(express.static("public"));
 const port = 5555;
 const upload = multer(); // For handling file uploads
 
@@ -32,11 +33,14 @@ app.get("/list-s3-objects", async (req, res) => {
   }
 });
 
-app.get("/list-folder-details/:folderName", async (req, res) => {
-  const { folderName } = req.params;
+app.get("/list-folder-details", async (req, res) => {
+  let { folderName } = req.query;
+  folderName = decodeURIComponent(folderName); // Explicitly decode the query param
+
+  console.log("Decoded folder name:", folderName);
 
   try {
-    const permissions = await getPermissions(folderName);
+    const permissions = await getPermissions(folderName); // Fetch permissions
     res.json({
       owner: permissions.owner,
       sharedWith: permissions.sharedWith,

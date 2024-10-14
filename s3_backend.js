@@ -22,12 +22,15 @@ const client = new S3Client({
 export async function getPermissions(folderName) {
   const params = {
     Bucket: process.env.BUCKET,
-    Key: `${folderName}permissions.json`, // Fetch permissions at folder level
+    Key: `${folderName}/permissions.json`, // Ensure correct path
   };
-  const command = new GetObjectCommand(params);
+  console.log("Fetching permissions with params:", params); // Log the S3 params
 
+  const command = new GetObjectCommand(params);
   try {
     const response = await client.send(command);
+    console.log("S3 Response:", response); // Log the raw S3 response
+
     const streamToString = (stream) =>
       new Promise((resolve, reject) => {
         const chunks = [];
@@ -39,9 +42,10 @@ export async function getPermissions(folderName) {
       });
 
     const bodyContents = await streamToString(response.Body);
+    console.log("Permissions file contents:", bodyContents); // Log file contents
     return JSON.parse(bodyContents);
   } catch (error) {
-    console.error("Error fetching permissions: ", error);
+    console.error("Error fetching permissions from S3:", error);
     throw error;
   }
 }
