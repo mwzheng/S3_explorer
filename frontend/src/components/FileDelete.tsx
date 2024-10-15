@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 
-const FileDelete = () => {
-  const [fileKey, setFileKey] = useState("");
+interface FileDeleteProps {
+  fileKey: string;
+  onClose: () => void;
+}
 
+const FileDelete: React.FC<FileDeleteProps> = ({ fileKey, onClose }) => {
   const handleDelete = async () => {
     try {
       const response = await fetch(
@@ -13,6 +16,7 @@ const FileDelete = () => {
       );
       if (!response.ok) throw new Error("Failed to delete file");
       alert("File deleted successfully");
+      onClose(); // Close the modal after deletion
     } catch (err) {
       alert("Failed to delete file");
     }
@@ -20,13 +24,11 @@ const FileDelete = () => {
 
   return (
     <div>
-      <input
-        type="text"
-        placeholder="Enter file key to delete"
-        value={fileKey}
-        onChange={(e) => setFileKey(e.target.value)}
-      />
-      <button onClick={handleDelete}>Delete File</button>
+      <p>
+        Are you sure you want to delete the file: <strong>{fileKey}</strong>?
+      </p>
+      <button onClick={handleDelete}>Confirm Delete</button>
+      <button onClick={onClose}>Cancel</button>
     </div>
   );
 };

@@ -76,13 +76,23 @@ export async function listS3Objects(prefix = "") {
   const input = {
     Bucket: process.env.BUCKET,
     Prefix: prefix,
+    Delimiter: "/", // This ensures we can get folder-like results
   };
 
   const command = new ListObjectsCommand(input);
 
   try {
     const response = await client.send(command);
-    return response.Contents;
+
+    // The response will include CommonPrefixes for folders
+    const contents = response.Contents || [];
+    const prefixes = response.CommonPrefixes || [];
+
+    // Combine files and folders for the response
+    return {
+      files: contents,
+      folders: prefixes,
+    };
   } catch (error) {
     console.error("Error listing S3 objects: ", error);
     throw error;

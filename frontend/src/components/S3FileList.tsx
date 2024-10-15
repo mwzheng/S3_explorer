@@ -1,99 +1,261 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { FaFolder, FaFile, FaTrash, FaShareAlt } from "react-icons/fa";
-import FolderShare from "./FolderShare";
+import FolderShare from "./FolderShare"; // Adjust the import as necessary
+import FileDelete from "./FileDelete"; // Import the FileDelete component
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-interface S3FileListProps {
-  files: any[]; // The array of files from S3
+enum SortOption {
+  ALPHABETICAL = "Alphabetical",
+  DATE_MODIFIED = "Date Modified",
+  DATE_CREATED = "Date Created", // Assuming you're tracking creation date
 }
 
-const S3FileList: React.FC<S3FileListProps> = (props) => {
-  const [files, setFiles] = useState<any[]>([]);
-  const [selectedFileForSharing, setSelectedFileForSharing] = useState<
-    string | null
-  >(null);
+// Define types for your props
+interface File {
+  Key: string;
+  LastModified: string;
+  Size: number;
+}
 
-  useEffect(() => {
-    setFiles(props.files);
-  }, [props.files]);
+interface Folder {
+  Key: string;
+  LastModified: string;
+}
 
-  const openFolder = (file: any) => {
-    console.log("> Attempting to open folder:", file);
+interface S3FileListProps {
+  files: File[];
+  folders: Folder[];
+  onFolderChange: (folderKey: string) => void;
+  isListView: boolean;
+}
 
-    if (file.Key.endsWith("/")) {
-      fetch(
-        `${process.env.REACT_APP_API_ENDPOINT}/list-s3-objects?prefix=${file.Key}`
-      )
-        .then((response) => response.json())
-        .then((data) => setFiles(data))
-        .catch((error) =>
-          console.error("Error fetching folder details:", error)
-        );
+const S3FileList: React.FC<S3FileListProps> = ({
+  files,
+  folders,
+  onFolderChange,
+  isListView,
+}) => {
+  const [sharingFolder, setSharingFolder] = useState<string>("");
+  const [showShareForm, setShowShareForm] = useState<boolean>(false);
+  const [sharePosition, setSharePosition] = useState<{
+    top: number;
+    left: number;
+  }>({ top: 0, left: 0 });
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [currentFileKey, setCurrentFileKey] = useState<string>("");
+  const [sortOption, setSortOption] = useState<SortOption>(
+    SortOption.ALPHABETICAL
+  );
+
+  const shareFolder = async (folder: string) => {
+    const response = await fetch(
+      `${process.env.REACT_APP_API_ENDPOINT}/share-folder`,
+      {
+        method: "POST",
+        body: JSON.stringify({ folder }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
     }
   };
 
-  const deleteFile = (file: any) => {
-    fetch(
-      `${process.env.REACT_APP_API_ENDPOINT}/delete-s3-object/${file.Key}`,
-      {
-        method: "DELETE",
-      }
-    ).then(() => setFiles(files.filter((f) => f.Key !== file.Key)));
+  const handleShareClick = (folder: string, event: React.MouseEvent) => {
+    setSharingFolder(folder);
+    setShowShareForm(true);
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    setSharePosition({
+      top: buttonRect.bottom + window.scrollY,
+      left: buttonRect.left,
+    });
   };
 
-  const handleShareClick = (fileKey: string) => {
-    setSelectedFileForSharing(fileKey);
+  const handleDeleteClick = (fileKey: string) => {
+    setCurrentFileKey(fileKey);
+    setShowDeleteModal(true);
   };
 
-  const handleCloseShare = () => {
-    setSelectedFileForSharing(null);
+  const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortOption(event.target.value as SortOption);
   };
 
-  if (props.files.length === 0) {
-    return <>No Files in folder</>;
-  }
+  // Sorting logic based on the selected option
+  const sortFilesAndFolders = () => {
+    let sortedFolders = [...folders];
+    let sortedFiles = [...files];
+
+    switch (sortOption) {
+      case SortOption.ALPHABETICAL:
+        sortedFolders.sort((a, b) => a.Key.localeCompare(b.Key));
+        sortedFiles.sort((a, b) => a.Key.localeCompare(b.Key));
+        break;
+      case SortOption.DATE_MODIFIED:
+        sortedFolders.sort(
+          (a, b) =>
+            new Date(b.LastModified).getTime() -
+            new Date(a.LastModified).getTime()
+        );
+        sortedFiles.sort(
+          (a, b) =>
+            new Date(b.LastModified).getTime() -
+            new Date(a.LastModified).getTime()
+        );
+        break;
+      case SortOption.DATE_CREATED:
+        // Assuming there's a 'DateCreated' field, adjust accordingly if you're using a different field.
+        sortedFolders.sort(
+          (a, b) =>
+            new Date(b.LastModified).getTime() -
+            new Date(a.LastModified).getTime() // replace with DateCreated if applicable
+        );
+        sortedFiles.sort(
+          (a, b) =>
+            new Date(b.LastModified).getTime() -
+            new Date(a.LastModified).getTime() // replace with DateCreated if applicable
+        );
+        break;
+      default:
+        break;
+    }
+    return { sortedFolders, sortedFiles };
+  };
+
+  const { sortedFolders, sortedFiles } = sortFilesAndFolders();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {files.map((file: any) => {
-        return (
-          <div
-            key={file.Key}
-            className="border p-4 rounded-lg bg-white text-center relative shadow-md"
-          >
-            {file.Key.endsWith("/") ? (
-              <FaFolder
-                size={40}
-                className="mx-auto cursor-pointer text-blue-500"
-                onClick={() => openFolder(file)}
-              />
-            ) : (
-              <FaFile size={40} className="mx-auto text-gray-500" />
-            )}
-            <p className="mt-2">{file.name || file.Key}</p>
-            <p className="mt-1">Date Modified: {file.LastModified}</p>
-            <p className="text-sm">Owner: {file.owner || "Unknown"}</p>
-            {/* Share Button */}
-            <FaShareAlt
-              size={20}
-              className="absolute top-2 right-8 cursor-pointer text-green-500"
-              onClick={() => handleShareClick(file.Key)}
-            />
-            {/* Delete Button */}
-            <FaTrash
-              size={20}
-              className="absolute top-2 right-2 cursor-pointer text-red-500"
-              onClick={() => deleteFile(file)}
-            />
+    <>
+      {/* Sort Button */}
+      <div className="flex justify-end mb-4">
+        <select
+          value={sortOption}
+          onChange={handleSortChange}
+          className="border p-2 rounded"
+        >
+          <option value={SortOption.ALPHABETICAL}>Alphabetical</option>
+          <option value={SortOption.DATE_MODIFIED}>Date Modified</option>
+          <option value={SortOption.DATE_CREATED}>Date Created</option>
+        </select>
+      </div>
 
-            {selectedFileForSharing === file.Key && (
-              <div className="absolute bottom-full right-0 mb-2 bg-gray-100 p-4 shadow-md rounded-lg">
-                <FolderShare folderName={file.Key} onClose={handleCloseShare} />
+      {isListView ? (
+        <div className="overflow-auto">
+          <table className="min-w-full bg-white">
+            <thead>
+              <tr>
+                <th className="border px-4 py-2">Type</th>
+                <th className="border px-4 py-2">Name</th>
+                <th className="border px-4 py-2">Last Modified</th>
+                <th className="border px-4 py-2">Size</th>
+                <th className="border px-4 py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedFolders.map((folder) => (
+                <tr key={folder.Key}>
+                  <td className="border px-4 py-2">
+                    <FaFolder size={20} className="text-blue-500" />
+                  </td>
+                  <td
+                    className="border px-4 py-2 cursor-pointer"
+                    onClick={() => onFolderChange(folder.Key)}
+                  >
+                    {folder.Key.split("/").slice(-2, -1)[0]}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {new Date(folder.LastModified).toLocaleString()}
+                  </td>
+                  <td className="border px-4 py-2">-</td>
+                  <td className="border px-4 py-2">
+                    <FaShareAlt
+                      size={20}
+                      className="cursor-pointer text-green-500"
+                      onClick={(e) => handleShareClick(folder.Key, e)}
+                    />
+                    <FaTrash
+                      size={20}
+                      className="cursor-pointer text-red-500"
+                      onClick={() => handleDeleteClick(folder.Key)}
+                    />
+                  </td>
+                </tr>
+              ))}
+              {sortedFiles.map((file) => (
+                <tr key={file.Key}>
+                  <td className="border px-4 py-2">
+                    <FaFile size={20} className="text-blue-500" />
+                  </td>
+                  <td className="border px-4 py-2">
+                    {file.Key.split("/").slice(-1)[0]}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {new Date(file.LastModified).toLocaleString()}
+                  </td>
+                  <td className="border px-4 py-2">{file.Size} bytes</td>
+                  <td className="border px-4 py-2">
+                    <FaShareAlt
+                      size={20}
+                      className="cursor-pointer text-green-500"
+                      onClick={(e) => handleShareClick(file.Key, e)}
+                    />
+                    <FaTrash
+                      size={20}
+                      className="cursor-pointer text-red-500"
+                      onClick={() => handleDeleteClick(file.Key)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-4">
+          {sortedFolders.map((folder) => (
+            <div key={folder.Key} className="border p-2 relative">
+              <FaFolder size={40} className="text-blue-500" />
+              <p>{folder.Key.split("/").slice(-2, -1)[0]}</p>
+              <p>{new Date(folder.LastModified).toLocaleString()}</p>
+              <div className="absolute top-0 right-0 flex space-x-2">
+                <FaShareAlt
+                  size={20}
+                  className="text-green-500 cursor-pointer"
+                  onClick={(e) => handleShareClick(folder.Key, e)}
+                />
+                <FaTrash
+                  size={20}
+                  className="text-red-500 cursor-pointer"
+                  onClick={() => handleDeleteClick(folder.Key)}
+                />
               </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+            </div>
+          ))}
+          {sortedFiles.map((file) => (
+            <div key={file.Key} className="border p-2 relative">
+              <FaFile size={40} className="text-blue-500" />
+              <p>{file.Key.split("/").slice(-1)[0]}</p>
+              <p>{new Date(file.LastModified).toLocaleString()}</p>
+              <p>{file.Size} bytes</p>
+              <div className="absolute top-0 right-0 flex space-x-2">
+                <FaShareAlt
+                  size={20}
+                  className="text-green-500 cursor-pointer"
+                  onClick={(e) => handleShareClick(file.Key, e)}
+                />
+                <FaTrash
+                  size={20}
+                  className="text-red-500 cursor-pointer"
+                  onClick={() => handleDeleteClick(file.Key)}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
   );
 };
 

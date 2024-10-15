@@ -1,42 +1,43 @@
-import React, { useState } from "react";
+// FolderShare.tsx
+import React from "react";
 
 interface FolderShareProps {
-  folderName: string; // Dynamically passed from the clicked folder or file
-  onClose: () => void; // Close function for the share form
+  folderName: string;
+  onShare: (
+    userName: string,
+    permissions: { read: boolean; write: boolean }
+  ) => Promise<void>;
+  onClose: () => void;
+  position: { top: number; left: number };
 }
 
-const FolderShare: React.FC<FolderShareProps> = ({ folderName, onClose }) => {
-  const [sharedWith, setSharedWith] = useState("");
-  const [permissionType, setPermissionType] = useState("read");
+const FolderShare: React.FC<FolderShareProps> = ({
+  folderName,
+  onShare,
+  onClose,
+  position,
+}) => {
+  const [sharedWith, setSharedWith] = React.useState<string>("");
+  const [permissionType, setPermissionType] = React.useState<string>("read");
 
-  const handleShare = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const payload = {
-      folderName,
-      sharedWith,
-      permissionType,
+  const handleShare = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const permissions = {
+      read: permissionType === "read",
+      write: permissionType === "write",
     };
-
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_ENDPOINT}/share-folder`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
-      console.log("Folder shared:", response);
-      onClose(); // Close the form after sharing
-    } catch (error) {
-      console.error("Error sharing folder:", error);
-    }
+    await onShare(sharedWith, permissions);
   };
 
   return (
     <form
       onSubmit={handleShare}
-      className="border p-2 bg-gray-100 shadow-lg rounded-md absolute -top-28"
+      className="border p-2 bg-gray-100 shadow-lg rounded-md absolute"
+      style={{
+        top: `${position.top}px`,
+        left: `${position.left}px`,
+        transform: "translate(-50%, -100%)", // Adjusts the position to appear next to the button
+      }}
     >
       <h3 className="font-bold mb-2">Share {folderName}</h3>
       <input
