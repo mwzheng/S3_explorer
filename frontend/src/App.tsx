@@ -88,6 +88,7 @@ const App: React.FC = () => {
           </span>
         ))}
       </div>
+      <FileUpload />
 
       <S3FileList
         files={files.filter((file) => !file.Key.endsWith("/"))} // Render files only
@@ -95,7 +96,7 @@ const App: React.FC = () => {
         onFolderChange={handleFolderChange}
         isListView={isListView}
       />
-      <FileUpload />
+
       {showDeleteModal && (
         <FileDelete
           fileKey={currentFileKey}

@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 enum SortOption {
   ALPHABETICAL = "Alphabetical",
   DATE_MODIFIED = "Date Modified",
-  DATE_CREATED = "Date Created", // Assuming you're tracking creation date
+  DATE_CREATED = "Date Created",
 }
 
 // Define types for your props
@@ -47,6 +47,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
   const [sortOption, setSortOption] = useState<SortOption>(
     SortOption.ALPHABETICAL
   );
+  const [searchQuery, setSearchQuery] = useState<string>(""); // Search query state
 
   const shareFolder = async (folder: string) => {
     const response = await fetch(
@@ -110,24 +111,45 @@ const S3FileList: React.FC<S3FileListProps> = ({
         sortedFolders.sort(
           (a, b) =>
             new Date(b.LastModified).getTime() -
-            new Date(a.LastModified).getTime() // replace with DateCreated if applicable
+            new Date(a.LastModified).getTime()
         );
         sortedFiles.sort(
           (a, b) =>
             new Date(b.LastModified).getTime() -
-            new Date(a.LastModified).getTime() // replace with DateCreated if applicable
+            new Date(a.LastModified).getTime()
         );
         break;
       default:
         break;
     }
+
+    // Apply search filtering
+    if (searchQuery.trim()) {
+      sortedFolders = sortedFolders.filter((folder) =>
+        folder.Key.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      sortedFiles = sortedFiles.filter((file) =>
+        file.Key.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
     return { sortedFolders, sortedFiles };
   };
 
   const { sortedFolders, sortedFiles } = sortFilesAndFolders();
-
   return (
     <>
+      {/* Search Bar */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search files and folders..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="border p-2 rounded w-full"
+        />
+      </div>
+
       {/* Sort Button */}
       <div className="flex justify-end mb-4">
         <select
@@ -154,105 +176,129 @@ const S3FileList: React.FC<S3FileListProps> = ({
               </tr>
             </thead>
             <tbody>
-              {sortedFolders.map((folder) => (
-                <tr key={folder.Key}>
-                  <td className="border px-4 py-2">
-                    <FaFolder size={20} className="text-blue-500" />
-                  </td>
-                  <td
-                    className="border px-4 py-2 cursor-pointer"
-                    onClick={() => onFolderChange(folder.Key)}
-                  >
-                    {folder.Key.split("/").slice(-2, -1)[0]}
-                  </td>
-                  <td className="border px-4 py-2">
-                    {new Date(folder.LastModified).toLocaleString()}
-                  </td>
-                  <td className="border px-4 py-2">-</td>
-                  <td className="border px-4 py-2">
-                    <FaShareAlt
-                      size={20}
-                      className="cursor-pointer text-green-500"
-                      onClick={(e) => handleShareClick(folder.Key, e)}
-                    />
-                    <FaTrash
-                      size={20}
-                      className="cursor-pointer text-red-500"
-                      onClick={() => handleDeleteClick(folder.Key)}
-                    />
-                  </td>
-                </tr>
-              ))}
-              {sortedFiles.map((file) => (
-                <tr key={file.Key}>
-                  <td className="border px-4 py-2">
-                    <FaFile size={20} className="text-blue-500" />
-                  </td>
-                  <td className="border px-4 py-2">
-                    {file.Key.split("/").slice(-1)[0]}
-                  </td>
-                  <td className="border px-4 py-2">
-                    {new Date(file.LastModified).toLocaleString()}
-                  </td>
-                  <td className="border px-4 py-2">{file.Size} bytes</td>
-                  <td className="border px-4 py-2">
-                    <FaShareAlt
-                      size={20}
-                      className="cursor-pointer text-green-500"
-                      onClick={(e) => handleShareClick(file.Key, e)}
-                    />
-                    <FaTrash
-                      size={20}
-                      className="cursor-pointer text-red-500"
-                      onClick={() => handleDeleteClick(file.Key)}
-                    />
-                  </td>
-                </tr>
-              ))}
+              {sortedFolders
+                .filter((folder) =>
+                  folder.Key.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+                .map((folder) => (
+                  <tr key={folder.Key}>
+                    <td className="border px-4 py-2 text-center">
+                      <FaFolder
+                        size={20}
+                        className="text-blue-500 inline-block"
+                      />
+                    </td>
+
+                    <td
+                      className="border px-4 py-2 cursor-pointer"
+                      onClick={() => onFolderChange(folder.Key)}
+                    >
+                      {folder.Key.split("/").slice(-2, -1)[0]}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {new Date(folder.LastModified).toLocaleString()}
+                    </td>
+                    <td className="border px-4 py-2">-</td>
+                    <td className="border px-4 py-2">
+                      <div className="flex items-center space-x-4">
+                        <FaShareAlt
+                          size={20}
+                          className="cursor-pointer text-green-500"
+                          onClick={(e) => handleShareClick(folder.Key, e)}
+                        />
+                        <FaTrash
+                          size={20}
+                          className="cursor-pointer text-red-500"
+                          onClick={() => handleDeleteClick(folder.Key)}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              {sortedFiles
+                .filter((file) =>
+                  file.Key.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+                .map((file) => (
+                  <tr key={file.Key}>
+                    <td className=" border px-4 py-2.5 text-center flex justify-center items-center">
+                      <FaFile size={20} className="text-gray-500" />
+                    </td>
+                    <td className="border px-4 py-2">
+                      {file.Key.split("/").slice(-1)[0]}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {new Date(file.LastModified).toLocaleString()}
+                    </td>
+                    <td className="border px-4 py-2">{file.Size} bytes</td>
+                    <td className="border px-4 py-2">
+                      <div className="flex items-center space-x-4">
+                        <FaShareAlt
+                          size={20}
+                          className="cursor-pointer text-green-500"
+                          onClick={(e) => handleShareClick(file.Key, e)}
+                        />
+                        <FaTrash
+                          size={20}
+                          className="cursor-pointer text-red-500"
+                          onClick={() => handleDeleteClick(file.Key)}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-4">
-          {sortedFolders.map((folder) => (
-            <div key={folder.Key} className="border p-2 relative">
-              <FaFolder size={40} className="text-blue-500" />
-              <p>{folder.Key.split("/").slice(-2, -1)[0]}</p>
-              <p>{new Date(folder.LastModified).toLocaleString()}</p>
-              <div className="absolute top-0 right-0 flex space-x-2">
-                <FaShareAlt
-                  size={20}
-                  className="text-green-500 cursor-pointer"
-                  onClick={(e) => handleShareClick(folder.Key, e)}
-                />
-                <FaTrash
-                  size={20}
-                  className="text-red-500 cursor-pointer"
-                  onClick={() => handleDeleteClick(folder.Key)}
-                />
+          {sortedFolders
+            .filter((folder) =>
+              folder.Key.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+            .map((folder) => (
+              <div key={folder.Key} className="border p-2 relative">
+                <FaFolder size={40} className="text-blue-500" />
+                <p>{folder.Key.split("/").slice(-2, -1)[0]}</p>
+                <p>{new Date(folder.LastModified).toLocaleString()}</p>
+                <div className="absolute top-0 right-0 flex space-x-2 py-5 mr-3">
+                  <FaShareAlt
+                    size={20}
+                    className="text-green-500 cursor-pointer"
+                    onClick={(e) => handleShareClick(folder.Key, e)}
+                  />
+                  <FaTrash
+                    size={20}
+                    className="text-red-500 cursor-pointer"
+                    onClick={() => handleDeleteClick(folder.Key)}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
-          {sortedFiles.map((file) => (
-            <div key={file.Key} className="border p-2 relative">
-              <FaFile size={40} className="text-blue-500" />
-              <p>{file.Key.split("/").slice(-1)[0]}</p>
-              <p>{new Date(file.LastModified).toLocaleString()}</p>
-              <p>{file.Size} bytes</p>
-              <div className="absolute top-0 right-0 flex space-x-2">
-                <FaShareAlt
-                  size={20}
-                  className="text-green-500 cursor-pointer"
-                  onClick={(e) => handleShareClick(file.Key, e)}
-                />
-                <FaTrash
-                  size={20}
-                  className="text-red-500 cursor-pointer"
-                  onClick={() => handleDeleteClick(file.Key)}
-                />
+            ))}
+          {sortedFiles
+            .filter((file) =>
+              file.Key.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+            .map((file) => (
+              <div key={file.Key} className="border p-2 relative">
+                <FaFile size={40} className="text-gray-500" />
+                <p>{file.Key.split("/").slice(-1)[0]}</p>
+                <p>{new Date(file.LastModified).toLocaleString()}</p>
+                <p>{file.Size} bytes</p>
+                <div className="absolute top-0 right-0 flex space-x-2 py-5 mr-3">
+                  <FaShareAlt
+                    size={20}
+                    className="text-green-500 cursor-pointer"
+                    onClick={(e) => handleShareClick(file.Key, e)}
+                  />
+                  <FaTrash
+                    size={20}
+                    className="text-red-500 cursor-pointer"
+                    onClick={() => handleDeleteClick(file.Key)}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
     </>
