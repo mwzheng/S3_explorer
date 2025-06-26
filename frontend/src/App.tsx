@@ -4,7 +4,7 @@ import FileUpload from "./components/FileUpload";
 import FileDelete from "./components/FileDelete";
 
 const App: React.FC = () => {
-  const [files, setFiles] = useState<any[]>([]);
+  const [files, setFiles] = useState<any>([]);
   const [currentFolder, setCurrentFolder] = useState<string>("configs/"); // Start at configs folder
   const [breadcrumb, setBreadcrumb] = useState<string[]>(["configs"]); // Initialize breadcrumb
   const [isListView, setIsListView] = useState<boolean>(true); // Toggle for view type
@@ -90,12 +90,14 @@ const App: React.FC = () => {
       </div>
       <FileUpload />
 
-      <S3FileList
-        files={files.filter((file) => !file.Key.endsWith("/"))} // Render files only
-        folders={files.filter((file) => file.Key.endsWith("/"))} // Render folders only
-        onFolderChange={handleFolderChange}
-        isListView={isListView}
-      />
+      {files.length === 0 ? null : (
+        <S3FileList
+          files={files.files.filter((file: any) => !file.Key.endsWith("/"))} // Render files only
+          folders={files.files.filter((file: any) => file.Key.endsWith("/"))} // Render folders only
+          onFolderChange={handleFolderChange}
+          isListView={isListView}
+        />
+      )}
 
       {showDeleteModal && (
         <FileDelete
