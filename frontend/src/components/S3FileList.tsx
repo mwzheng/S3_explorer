@@ -20,7 +20,6 @@ interface File {
 
 interface Folder {
   Prefix: string;
-  LastModified: string;
 }
 
 interface S3FileListProps {
@@ -36,7 +35,6 @@ const S3FileList: React.FC<S3FileListProps> = ({
   onFolderChange,
   isListView,
 }) => {
-  console.log(folders);
   const [sharingFolder, setSharingFolder] = useState<string>("");
   const [showShareForm, setShowShareForm] = useState<boolean>(false);
   const [sharePosition, setSharePosition] = useState<{
@@ -89,18 +87,12 @@ const S3FileList: React.FC<S3FileListProps> = ({
   const sortFilesAndFolders = () => {
     let sortedFolders = [...folders];
     let sortedFiles = [...files];
-    console.log(sortedFiles);
     switch (sortOption) {
       case SortOption.ALPHABETICAL:
         sortedFolders.sort((a, b) => a.Prefix.localeCompare(b.Prefix));
         sortedFiles.sort((a, b) => a.Key.localeCompare(b.Key));
         break;
       case SortOption.DATE_MODIFIED:
-        sortedFolders.sort(
-          (a, b) =>
-            new Date(b.LastModified).getTime() -
-            new Date(a.LastModified).getTime()
-        );
         sortedFiles.sort(
           (a, b) =>
             new Date(b.LastModified).getTime() -
@@ -109,11 +101,6 @@ const S3FileList: React.FC<S3FileListProps> = ({
         break;
       case SortOption.DATE_CREATED:
         // Assuming there's a 'DateCreated' field, adjust accordingly if you're using a different field.
-        sortedFolders.sort(
-          (a, b) =>
-            new Date(b.LastModified).getTime() -
-            new Date(a.LastModified).getTime()
-        );
         sortedFiles.sort(
           (a, b) =>
             new Date(b.LastModified).getTime() -
@@ -198,9 +185,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
                     >
                       {folder.Prefix.split("/").slice(-2, -1)[0]}
                     </td>
-                    <td className="border px-4 py-2">
-                      {new Date(folder.LastModified).toLocaleString()}
-                    </td>
+                    <td className="border px-4 py-2">{"-"}</td>
                     <td className="border px-4 py-2">-</td>
                     <td className="border px-4 py-2">
                       <div className="flex items-center space-x-4">
@@ -263,7 +248,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
               <div key={folder.Prefix} className="border p-2 relative">
                 <FaFolder size={40} className="text-blue-500" />
                 <p>{folder.Prefix.split("/").slice(-2, -1)[0]}</p>
-                <p>{new Date(folder.LastModified).toLocaleString()}</p>
+                <p>-</p>
                 <div className="absolute top-0 right-0 flex space-x-2 py-5 mr-3">
                   <FaShareAlt
                     size={20}
