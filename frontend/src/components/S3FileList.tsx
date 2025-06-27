@@ -19,7 +19,7 @@ interface File {
 }
 
 interface Folder {
-  Key: string;
+  Prefix: string;
   LastModified: string;
 }
 
@@ -36,6 +36,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
   onFolderChange,
   isListView,
 }) => {
+  console.log(folders);
   const [sharingFolder, setSharingFolder] = useState<string>("");
   const [showShareForm, setShowShareForm] = useState<boolean>(false);
   const [sharePosition, setSharePosition] = useState<{
@@ -88,10 +89,10 @@ const S3FileList: React.FC<S3FileListProps> = ({
   const sortFilesAndFolders = () => {
     let sortedFolders = [...folders];
     let sortedFiles = [...files];
-
+    console.log(sortedFiles);
     switch (sortOption) {
       case SortOption.ALPHABETICAL:
-        sortedFolders.sort((a, b) => a.Key.localeCompare(b.Key));
+        sortedFolders.sort((a, b) => a.Prefix.localeCompare(b.Prefix));
         sortedFiles.sort((a, b) => a.Key.localeCompare(b.Key));
         break;
       case SortOption.DATE_MODIFIED:
@@ -126,7 +127,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
     // Apply search filtering
     if (searchQuery.trim()) {
       sortedFolders = sortedFolders.filter((folder) =>
-        folder.Key.toLowerCase().includes(searchQuery.toLowerCase())
+        folder.Prefix.toLowerCase().includes(searchQuery.toLowerCase())
       );
       sortedFiles = sortedFiles.filter((file) =>
         file.Key.toLowerCase().includes(searchQuery.toLowerCase())
@@ -178,10 +179,12 @@ const S3FileList: React.FC<S3FileListProps> = ({
             <tbody>
               {sortedFolders
                 .filter((folder) =>
-                  folder.Key.toLowerCase().includes(searchQuery.toLowerCase())
+                  folder.Prefix.toLowerCase().includes(
+                    searchQuery.toLowerCase()
+                  )
                 )
                 .map((folder) => (
-                  <tr key={folder.Key}>
+                  <tr key={folder.Prefix}>
                     <td className="border px-4 py-2 text-center">
                       <FaFolder
                         size={20}
@@ -191,9 +194,9 @@ const S3FileList: React.FC<S3FileListProps> = ({
 
                     <td
                       className="border px-4 py-2 cursor-pointer"
-                      onClick={() => onFolderChange(folder.Key)}
+                      onClick={() => onFolderChange(folder.Prefix)}
                     >
-                      {folder.Key.split("/").slice(-2, -1)[0]}
+                      {folder.Prefix.split("/").slice(-2, -1)[0]}
                     </td>
                     <td className="border px-4 py-2">
                       {new Date(folder.LastModified).toLocaleString()}
@@ -204,12 +207,12 @@ const S3FileList: React.FC<S3FileListProps> = ({
                         <FaShareAlt
                           size={20}
                           className="cursor-pointer text-green-500"
-                          onClick={(e) => handleShareClick(folder.Key, e)}
+                          onClick={(e) => handleShareClick(folder.Prefix, e)}
                         />
                         <FaTrash
                           size={20}
                           className="cursor-pointer text-red-500"
-                          onClick={() => handleDeleteClick(folder.Key)}
+                          onClick={() => handleDeleteClick(folder.Prefix)}
                         />
                       </div>
                     </td>
@@ -254,23 +257,23 @@ const S3FileList: React.FC<S3FileListProps> = ({
         <div className="grid grid-cols-3 gap-4">
           {sortedFolders
             .filter((folder) =>
-              folder.Key.toLowerCase().includes(searchQuery.toLowerCase())
+              folder.Prefix.toLowerCase().includes(searchQuery.toLowerCase())
             )
             .map((folder) => (
-              <div key={folder.Key} className="border p-2 relative">
+              <div key={folder.Prefix} className="border p-2 relative">
                 <FaFolder size={40} className="text-blue-500" />
-                <p>{folder.Key.split("/").slice(-2, -1)[0]}</p>
+                <p>{folder.Prefix.split("/").slice(-2, -1)[0]}</p>
                 <p>{new Date(folder.LastModified).toLocaleString()}</p>
                 <div className="absolute top-0 right-0 flex space-x-2 py-5 mr-3">
                   <FaShareAlt
                     size={20}
                     className="text-green-500 cursor-pointer"
-                    onClick={(e) => handleShareClick(folder.Key, e)}
+                    onClick={(e) => handleShareClick(folder.Prefix, e)}
                   />
                   <FaTrash
                     size={20}
                     className="text-red-500 cursor-pointer"
-                    onClick={() => handleDeleteClick(folder.Key)}
+                    onClick={() => handleDeleteClick(folder.Prefix)}
                   />
                 </div>
               </div>
