@@ -26,6 +26,7 @@ const App: React.FC = () => {
         const data = await response.json();
 
         // Directly set the response as files, assuming the API response includes both folders and files.
+        console.log(data);
         setFiles(data);
       } catch (error) {
         console.error("Error fetching S3 objects:", error);
@@ -79,7 +80,11 @@ const App: React.FC = () => {
         {breadcrumb.map((folder, index) => (
           <span key={index}>
             <span
-              onClick={() => handleFolderChange(currentFolder + folder + "/")}
+              onClick={() => {
+                const newPath = breadcrumb.slice(0, index + 1).join("/") + "/";
+                setCurrentFolder(newPath);
+                setBreadcrumb(breadcrumb.slice(0, index + 1));
+              }}
               className="cursor-pointer text-blue-600"
             >
               /{folder}
@@ -93,7 +98,9 @@ const App: React.FC = () => {
       {files.length === 0 ? null : (
         <S3FileList
           files={files.files.filter((file: any) => !file.Key.endsWith("/"))} // Render files only
-          folders={files.files.filter((file: any) => file.Key.endsWith("/"))} // Render folders only
+          folders={files.folders.filter((file: any) =>
+            file.Prefix.endsWith("/")
+          )} // Render folders only
           onFolderChange={handleFolderChange}
           isListView={isListView}
         />
