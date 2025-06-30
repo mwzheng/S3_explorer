@@ -204,8 +204,10 @@ const S3FileList: React.FC<S3FileListProps> = ({
                   </tr>
                 ))}
               {sortedFiles
-                .filter((file) =>
-                  file.Key.toLowerCase().includes(searchQuery.toLowerCase())
+                .filter(
+                  (file) =>
+                    !file.Key.split("/").pop()?.startsWith(".") &&
+                    file.Key.toLowerCase().includes(searchQuery.toLowerCase())
                 )
                 .map((file) => (
                   <tr key={file.Key}>
@@ -241,8 +243,13 @@ const S3FileList: React.FC<S3FileListProps> = ({
       ) : (
         <div className="grid grid-cols-3 gap-4">
           {sortedFolders
-            .filter((folder) =>
-              folder.Prefix.toLowerCase().includes(searchQuery.toLowerCase())
+            .filter(
+              (folder) =>
+                !folder.Prefix.split("/")
+                  .filter(Boolean)
+                  .pop()
+                  ?.startsWith(".") &&
+                folder.Prefix.toLowerCase().includes(searchQuery.toLowerCase())
             )
             .map((folder) => (
               <div key={folder.Prefix} className="border p-2 relative">
