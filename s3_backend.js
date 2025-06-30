@@ -18,11 +18,11 @@ const client = new S3Client({
   },
 });
 
-// Helper function to read and update permissions.json
+// Helper function to read and update permissions
 export async function getPermissions(folderName) {
   const params = {
     Bucket: process.env.BUCKET,
-    Key: `${folderName}/permissions.json`, // Ensure correct path
+    Key: `${folderName}/.permissions`, // Ensure correct path
   };
   console.log("Fetching permissions with params:", params); // Log the S3 params
 
@@ -50,11 +50,11 @@ export async function getPermissions(folderName) {
   }
 }
 
-// Helper function to update permissions.json
+// Helper function to update permissions
 export async function updatePermissions(folderName, newPermissions) {
   const params = {
     Bucket: process.env.BUCKET,
-    Key: `${folderName}/permissions.json`,
+    Key: `${folderName}/.permissions`,
     Body: JSON.stringify(newPermissions),
   };
 
