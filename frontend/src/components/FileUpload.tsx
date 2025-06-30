@@ -11,6 +11,11 @@ const FileUpload: React.FC = () => {
     e.preventDefault();
     if (!selectedFile) return;
 
+    if (selectedFile.name.startsWith(".")) {
+      alert("Uploading dotfiles is not allowed.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("file", selectedFile);
 
@@ -29,14 +34,8 @@ const FileUpload: React.FC = () => {
   };
 
   return (
-    <form
-      onSubmit={handleUpload}
-      className="py-8"
-    >
-      <input
-        type="file"
-        onChange={handleFileChange}
-      />
+    <form onSubmit={handleUpload} className="py-8">
+      <input type="file" onChange={handleFileChange} />
       <button
         type="submit"
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
