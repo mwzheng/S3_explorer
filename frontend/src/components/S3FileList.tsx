@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { FaFolder, FaFile, FaTrash, FaShareAlt } from "react-icons/fa";
+import {
+  FaFolder,
+  FaFile,
+  FaTrash,
+  FaShareAlt,
+  FaDownload,
+} from "react-icons/fa";
 import FolderShare from "./FolderShare"; // Adjust the import as necessary
 import FileDelete from "./FileDelete"; // Import the FileDelete component
 import { ToastContainer, toast } from "react-toastify";
@@ -27,6 +33,7 @@ interface S3FileListProps {
   folders: Folder[];
   onFolderChange: (folderKey: string) => void;
   isListView: boolean;
+  onDeleteFile: (fileKey: string) => void;
 }
 
 const S3FileList: React.FC<S3FileListProps> = ({
@@ -34,6 +41,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
   folders,
   onFolderChange,
   isListView,
+  onDeleteFile,
 }) => {
   const [sharingFolder, setSharingFolder] = useState<string>("");
   const [showShareForm, setShowShareForm] = useState<boolean>(false);
@@ -72,11 +80,6 @@ const S3FileList: React.FC<S3FileListProps> = ({
       top: buttonRect.bottom + window.scrollY,
       left: buttonRect.left,
     });
-  };
-
-  const handleDeleteClick = (fileKey: string) => {
-    setCurrentFileKey(fileKey);
-    setShowDeleteModal(true);
   };
 
   const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -197,7 +200,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
                         <FaTrash
                           size={20}
                           className="cursor-pointer text-red-500"
-                          onClick={() => handleDeleteClick(folder.Prefix)}
+                          onClick={() => onDeleteFile(folder.Prefix)}
                         />
                       </div>
                     </td>
@@ -231,7 +234,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
                         <FaTrash
                           size={20}
                           className="cursor-pointer text-red-500"
-                          onClick={() => handleDeleteClick(file.Key)}
+                          onClick={() => onDeleteFile(file.Key)}
                         />
                       </div>
                     </td>
@@ -265,7 +268,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
                   <FaTrash
                     size={20}
                     className="text-red-500 cursor-pointer"
-                    onClick={() => handleDeleteClick(folder.Prefix)}
+                    onClick={() => onDeleteFile(folder.Prefix)}
                   />
                 </div>
               </div>
@@ -289,7 +292,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
                   <FaTrash
                     size={20}
                     className="text-red-500 cursor-pointer"
-                    onClick={() => handleDeleteClick(file.Key)}
+                    onClick={() => onDeleteFile(file.Key)}
                   />
                 </div>
               </div>

@@ -7,9 +7,12 @@ interface FileDeleteProps {
 
 const FileDelete: React.FC<FileDeleteProps> = ({ fileKey, onClose }) => {
   const handleDelete = async () => {
+    console.log(fileKey);
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_API_ENDPOINT}/delete-s3-object/${fileKey}`,
+        `${
+          process.env.REACT_APP_API_ENDPOINT
+        }/delete-s3-object/${encodeURIComponent(fileKey)}`,
         {
           method: "DELETE",
         }
@@ -23,12 +26,33 @@ const FileDelete: React.FC<FileDeleteProps> = ({ fileKey, onClose }) => {
   };
 
   return (
-    <div>
-      <p>
-        Are you sure you want to delete the file: <strong>{fileKey}</strong>?
-      </p>
-      <button onClick={handleDelete}>Confirm Delete</button>
-      <button onClick={onClose}>Cancel</button>
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white p-6 rounded shadow-lg z-60"
+        onClick={(e) => e.stopPropagation()} // Prevent click-through to close
+      >
+        <h2 className="text-xl font-semibold mb-4">Confirm File Deletion</h2>
+        <p className="mb-4">
+          Are you sure you want to delete the file: <strong>{fileKey}</strong>?
+        </p>
+        <div className="flex justify-center space-x-4">
+          <button
+            onClick={onClose}
+            className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleDelete}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

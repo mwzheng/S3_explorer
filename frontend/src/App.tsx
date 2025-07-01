@@ -13,6 +13,7 @@ const App: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
   const openDeleteModal = (fileKey: string) => {
+    console.log("open modal");
     setCurrentFileKey(fileKey);
     setShowDeleteModal(true);
   };
@@ -26,8 +27,8 @@ const App: React.FC = () => {
         const data = await response.json();
 
         // Directly set the response as files, assuming the API response includes both folders and files.
-        console.log(data);
         setFiles(data);
+        console.log(data);
       } catch (error) {
         console.error("Error fetching S3 objects:", error);
       }
@@ -103,6 +104,7 @@ const App: React.FC = () => {
           )} // Render folders only
           onFolderChange={handleFolderChange}
           isListView={isListView}
+          onDeleteFile={openDeleteModal}
         />
       )}
 
