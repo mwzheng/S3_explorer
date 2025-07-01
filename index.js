@@ -3,7 +3,7 @@ import multer from "multer";
 import {
   listS3Objects,
   uploadS3Object,
-  deleteS3Object,
+  deleteS3File,
   getPermissions,
   downloadS3Object,
 } from "./s3_backend.js";
@@ -66,10 +66,10 @@ app.post("/upload-s3-object", upload.single("file"), async (req, res) => {
 });
 
 // Endpoint to delete a file from S3
-app.delete("/delete-s3-object/:objectKey", async (req, res) => {
-  const { objectKey } = req.params;
+app.delete("/delete-s3-file/:fileKey", async (req, res) => {
+  const { fileKey } = req.params;
   try {
-    await deleteS3Object(objectKey);
+    await deleteS3File(fileKey);
     res.sendStatus(204); // No content
   } catch (err) {
     console.error("Error deleting object:", err);

@@ -117,10 +117,10 @@ export async function uploadS3Object(file) {
   }
 }
 
-export async function deleteS3Object(objectKey) {
+export async function deleteS3File(fileKey) {
   const params = {
     Bucket: process.env.BUCKET,
-    Key: objectKey,
+    Key: fileKey,
   };
 
   const command = new DeleteObjectCommand(params);

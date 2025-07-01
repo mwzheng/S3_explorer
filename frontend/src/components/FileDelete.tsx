@@ -12,7 +12,7 @@ const FileDelete: React.FC<FileDeleteProps> = ({ fileKey, onClose }) => {
       const response = await fetch(
         `${
           process.env.REACT_APP_API_ENDPOINT
-        }/delete-s3-object/${encodeURIComponent(fileKey)}`,
+        }/delete-s3-file/${encodeURIComponent(fileKey)}`,
         {
           method: "DELETE",
         }
