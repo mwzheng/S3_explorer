@@ -56,6 +56,24 @@ const S3FileList: React.FC<S3FileListProps> = ({
   );
   const [searchQuery, setSearchQuery] = useState<string>(""); // Search query state
 
+  const handleDownload = async (fileKey: string) => {
+    try {
+      const response = await fetch(
+        `${
+          process.env.REACT_APP_API_ENDPOINT
+        }/generate-download-url?key=${encodeURIComponent(fileKey)}`
+      );
+
+      if (!response.ok) throw new Error("Failed to get download URL");
+
+      const { url } = await response.json();
+      window.open(url, "_blank"); // or use a programmatic download
+    } catch (err) {
+      console.error("Download error:", err);
+      toast.error("Download failed.");
+    }
+  };
+
   const shareFolder = async (folder: string) => {
     const response = await fetch(
       `${process.env.REACT_APP_API_ENDPOINT}/share-folder`,
@@ -235,6 +253,11 @@ const S3FileList: React.FC<S3FileListProps> = ({
                           size={20}
                           className="cursor-pointer text-red-500"
                           onClick={() => onDeleteFile(file.Key)}
+                        />
+                        <FaDownload
+                          size={20}
+                          className="cursor-pointer text-blue-500"
+                          onClick={() => handleDownload(file.Key)}
                         />
                       </div>
                     </td>

@@ -3,10 +3,11 @@ import {
   ListObjectsCommand,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import dotenv from "dotenv";
 import { Readable } from "stream";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
 
 dotenv.config();
 
@@ -128,6 +129,24 @@ export async function deleteS3Object(objectKey) {
     await client.send(command);
   } catch (error) {
     console.error("Error deleting object from S3: ", error);
+    throw error;
+  }
+}
+
+export async function downloadS3Object(objectKey) {
+  const params = {
+    Bucket: process.env.BUCKET,
+    Key: objectKey,
+  };
+
+  const command = new GetObjectCommand(params);
+  console.log(command);
+
+  try {
+    const url = await getSignedUrl(client, command, { expiresIn: 60 }); // 60 seconds valid
+    return url;
+  } catch (error) {
+    console.error("Error getting object url from S3: ", error);
     throw error;
   }
 }

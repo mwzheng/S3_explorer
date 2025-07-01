@@ -5,10 +5,13 @@ import {
   uploadS3Object,
   deleteS3Object,
   getPermissions,
+  downloadS3Object,
 } from "./s3_backend.js";
 import { checkOwner } from "./checkOwner.js";
 import cors from "cors";
 import e from "express";
+
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const app = express();
 app.use(cors({ origin: "*" }));
@@ -93,6 +96,24 @@ app.post("/share-folder", checkOwner, async (req, res) => {
   } catch (error) {
     console.error("Error sharing folder:", error);
     res.status(500).send("Error sharing folder: " + error);
+  }
+});
+
+app.get("/generate-download-url", async (req, res) => {
+  const key = req.query.key;
+  console.log(key);
+
+  if (!key) {
+    return res.status(400).json({ error: "Missing 'key' parameter" });
+  }
+
+  try {
+    const url = await downloadS3Object(key);
+
+    return res.json({ url });
+  } catch (err) {
+    console.error("Failed to generate download URL:", err);
+    return res.status(500).json({ error: "Failed to generate URL" });
   }
 });
 
