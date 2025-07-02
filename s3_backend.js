@@ -1,8 +1,9 @@
 import {
   S3Client,
   ListObjectsCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
-  DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -129,6 +130,45 @@ export async function deleteS3File(fileKey) {
     await client.send(command);
   } catch (error) {
     console.error("Error deleting object from S3: ", error);
+    throw error;
+  }
+}
+
+export async function deleteS3Folder(folderKey) {
+  const listParams = {
+    Bucket: process.env.BUCKET,
+    Prefix: folderKey, // must end with "/"
+  };
+
+  try {
+    const listedObjects = await client.send(
+      new ListObjectsV2Command(listParams)
+    );
+
+    if (!listedObjects.Contents || listedObjects.Contents.length === 0) {
+      console.log("No contents found under prefix:", folderKey);
+      throw new Error("Folder is empty or does not exist.");
+    }
+
+    const objectsToDelete = listedObjects.Contents.map((obj) => ({
+      Key: obj.Key,
+    }));
+
+    const deleteParams = {
+      Bucket: process.env.BUCKET,
+      Delete: {
+        Objects: objectsToDelete,
+        Quiet: false,
+      },
+    };
+
+    const deleteResult = await client.send(
+      new DeleteObjectsCommand(deleteParams)
+    );
+    console.log("Deleted objects:", deleteResult.Deleted);
+    return deleteResult;
+  } catch (error) {
+    console.error("Error deleting folder from S3:", error);
     throw error;
   }
 }

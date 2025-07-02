@@ -4,6 +4,7 @@ import {
   listS3Objects,
   uploadS3Object,
   deleteS3File,
+  deleteS3Folder,
   getPermissions,
   downloadS3Object,
 } from "./s3_backend.js";
@@ -66,14 +67,26 @@ app.post("/upload-s3-object", upload.single("file"), async (req, res) => {
 });
 
 // Endpoint to delete a file from S3
-app.delete("/delete-s3-file/:fileKey", async (req, res) => {
-  const { fileKey } = req.params;
+app.delete("/delete-s3-file/*", async (req, res) => {
+  const key = decodeURIComponent(req.params[0]);
+  console.log(key);
+
   try {
-    await deleteS3File(fileKey);
-    res.sendStatus(204); // No content
-  } catch (err) {
-    console.error("Error deleting object:", err);
-    res.status(500).send("Error deleting object: " + err);
+    if (key.endsWith("/")) {
+      // Folder
+      await deleteS3Folder(key);
+      return res.json({ message: "Folder and its contents deleted." });
+    } else {
+      // Single file
+      await deleteS3File(key);
+      return res.json({ message: "File deleted." });
+    }
+  } catch (error) {
+    console.error("Error deleting S3 object:", error);
+    res.status(500).json({
+      error: "Error deleting S3 object",
+      details: error.message,
+    });
   }
 });
 
