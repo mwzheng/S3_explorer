@@ -88,7 +88,7 @@ const App: React.FC = () => {
               }}
               className="cursor-pointer text-blue-600"
             >
-              /{folder}
+              {folder}
             </span>
             {index < breadcrumb.length - 1 && " > "}
           </span>
