@@ -101,10 +101,12 @@ export async function listS3Objects(prefix = "") {
   }
 }
 
-export async function uploadS3Object(file) {
+export async function uploadS3Object(file, prefix = "") {
+  const key = `${prefix}${file.originalname}`;
+
   const params = {
     Bucket: process.env.BUCKET,
-    Key: file.originalname,
+    Key: key,
     Body: file.buffer,
   };
 
@@ -112,6 +114,7 @@ export async function uploadS3Object(file) {
 
   try {
     await client.send(command);
+    return { message: `Upload successful: ${key}`, key };
   } catch (error) {
     console.error("Error uploading file to S3: ", error);
     throw error;

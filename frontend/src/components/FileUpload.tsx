@@ -1,6 +1,9 @@
 import React, { useState } from "react";
+interface FileUploadProps {
+  currentPrefix: string;
+}
 
-const FileUpload: React.FC = () => {
+const FileUpload: React.FC<FileUploadProps> = ({ currentPrefix }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -18,6 +21,8 @@ const FileUpload: React.FC = () => {
 
     const formData = new FormData();
     formData.append("file", selectedFile);
+    formData.append("prefix", currentPrefix);
+    console.log("file path:", currentPrefix);
 
     try {
       const response = await fetch(
@@ -27,7 +32,7 @@ const FileUpload: React.FC = () => {
           body: formData,
         }
       );
-      console.log("File uploaded:", response);
+      console.log("File uploaded:", formData);
     } catch (error) {
       console.error("Error uploading file:", error);
     }

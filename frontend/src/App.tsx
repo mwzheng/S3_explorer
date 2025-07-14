@@ -94,7 +94,7 @@ const App: React.FC = () => {
           </span>
         ))}
       </div>
-      <FileUpload />
+      <FileUpload currentPrefix={currentFolder} />
 
       {files.length === 0 ? null : (
         <S3FileList

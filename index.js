@@ -58,10 +58,13 @@ app.get("/list-folder-details", async (req, res) => {
 // Endpoint to upload a file to S3
 app.post("/upload-s3-object", upload.single("file"), async (req, res) => {
   try {
-    const data = await uploadS3Object(req.file);
+    const prefix = req.body.prefix || "";
+    console.log("Received Prefix: ", prefix);
+
+    const data = await uploadS3Object(req.file, prefix);
     res.json(data);
   } catch (err) {
-    console.error("Error uploading file:", err);
+    console.error("Error uploading file:", err.stack || err);
     res.status(500).send("Error uploading file: " + err);
   }
 });
