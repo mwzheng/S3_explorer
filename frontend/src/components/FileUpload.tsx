@@ -30,8 +30,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
     formData.append("prefix", currentPrefix);
     Swal.fire({
       title: "Uploading...",
-      html: `<progress id="upload-progress" value="0" max="100" style="width: 100%"></progress>`,
+      html: "Please do not close or leave this page.",
       allowOutsideClick: false,
+      allowEscapeKey: false,
       didOpen: () => {
         Swal.showLoading();
       },
