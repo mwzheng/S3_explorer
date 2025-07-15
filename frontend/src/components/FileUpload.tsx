@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Swal from "sweetalert2";
 
 interface FileUploadProps {
@@ -11,6 +11,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   onUploadSuccess,
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedFile(e.target.files ? e.target.files[0] : null);
@@ -49,7 +50,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
       console.log("File uploaded:", formData);
       if (!response.ok) throw new Error("Upload failed");
       Swal.fire("Success", "File uploaded successfully!", "success");
-      setSelectedFile(null); // Reset file input
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       onUploadSuccess();
     } catch (error) {
       Swal.fire("Upload Failed", `${error}`, "error");
@@ -58,7 +62,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
   return (
     <form onSubmit={handleUpload} className="py-8">
-      <input type="file" onChange={handleFileChange} />
+      <input type="file" ref={fileInputRef} onChange={handleFileChange} />
       <button
         type="submit"
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
