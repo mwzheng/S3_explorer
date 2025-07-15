@@ -33,7 +33,7 @@ interface S3FileListProps {
   folders: Folder[];
   onFolderChange: (folderKey: string) => void;
   isListView: boolean;
-  onDeleteFile: (fileKey: string) => void;
+  onDeleteSuccess: () => void;
 }
 
 const S3FileList: React.FC<S3FileListProps> = ({
@@ -41,7 +41,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
   folders,
   onFolderChange,
   isListView,
-  onDeleteFile,
+  onDeleteSuccess,
 }) => {
   const [sharingFolder, setSharingFolder] = useState<string>("");
   const [showShareForm, setShowShareForm] = useState<boolean>(false);
@@ -215,11 +215,15 @@ const S3FileList: React.FC<S3FileListProps> = ({
                           className="cursor-pointer text-green-500"
                           onClick={(e) => handleShareClick(folder.Prefix, e)}
                         />
-                        <FaTrash
-                          size={20}
-                          className="cursor-pointer text-red-500"
-                          onClick={() => onDeleteFile(folder.Prefix)}
-                        />
+                        <FileDelete
+                          fileKey={folder.Prefix}
+                          onDeleteSuccess={onDeleteSuccess}
+                        >
+                          <FaTrash
+                            size={20}
+                            className="cursor-pointer text-red-500"
+                          />
+                        </FileDelete>
                       </div>
                     </td>
                   </tr>
@@ -249,11 +253,15 @@ const S3FileList: React.FC<S3FileListProps> = ({
                           className="cursor-pointer text-green-500"
                           onClick={(e) => handleShareClick(file.Key, e)}
                         />
-                        <FaTrash
-                          size={20}
-                          className="cursor-pointer text-red-500"
-                          onClick={() => onDeleteFile(file.Key)}
-                        />
+                        <FileDelete
+                          fileKey={file.Key}
+                          onDeleteSuccess={onDeleteSuccess}
+                        >
+                          <FaTrash
+                            size={20}
+                            className="cursor-pointer text-red-500"
+                          />
+                        </FileDelete>
                         <FaDownload
                           size={20}
                           className="cursor-pointer text-blue-500"
@@ -288,11 +296,15 @@ const S3FileList: React.FC<S3FileListProps> = ({
                     className="text-green-500 cursor-pointer"
                     onClick={(e) => handleShareClick(folder.Prefix, e)}
                   />
-                  <FaTrash
-                    size={20}
-                    className="text-red-500 cursor-pointer"
-                    onClick={() => onDeleteFile(folder.Prefix)}
-                  />
+                  <FileDelete
+                    fileKey={folder.Prefix}
+                    onDeleteSuccess={onDeleteSuccess}
+                  >
+                    <FaTrash
+                      size={20}
+                      className="cursor-pointer text-red-500"
+                    />
+                  </FileDelete>
                 </div>
               </div>
             ))}
@@ -312,11 +324,15 @@ const S3FileList: React.FC<S3FileListProps> = ({
                     className="text-green-500 cursor-pointer"
                     onClick={(e) => handleShareClick(file.Key, e)}
                   />
-                  <FaTrash
-                    size={20}
-                    className="text-red-500 cursor-pointer"
-                    onClick={() => onDeleteFile(file.Key)}
-                  />
+                  <FileDelete
+                    fileKey={file.Key}
+                    onDeleteSuccess={onDeleteSuccess}
+                  >
+                    <FaTrash
+                      size={20}
+                      className="cursor-pointer text-red-500"
+                    />
+                  </FileDelete>
                 </div>
               </div>
             ))}

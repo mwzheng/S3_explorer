@@ -1,22 +1,12 @@
 import React, { useState, useEffect } from "react";
 import S3FileList from "./components/S3FileList";
 import FileUpload from "./components/FileUpload";
-import FileDelete from "./components/FileDelete";
 
 const App: React.FC = () => {
   const [files, setFiles] = useState<any>([]);
   const [currentFolder, setCurrentFolder] = useState<string>("configs/"); // Start at configs folder
   const [breadcrumb, setBreadcrumb] = useState<string[]>(["configs"]); // Initialize breadcrumb
   const [isListView, setIsListView] = useState<boolean>(true); // Toggle for view type
-
-  const [currentFileKey, setCurrentFileKey] = useState<string>("");
-  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
-
-  const openDeleteModal = (fileKey: string) => {
-    console.log("open modal");
-    setCurrentFileKey(fileKey);
-    setShowDeleteModal(true);
-  };
 
   const fetchFiles = async () => {
     try {
@@ -112,17 +102,7 @@ const App: React.FC = () => {
           )} // Render folders only
           onFolderChange={handleFolderChange}
           isListView={isListView}
-          onDeleteFile={openDeleteModal}
-        />
-      )}
-
-      {showDeleteModal && (
-        <FileDelete
-          fileKey={currentFileKey}
-          onClose={() => {
-            setShowDeleteModal(false);
-            fetchFiles();
-          }}
+          onDeleteSuccess={fetchFiles}
         />
       )}
       <hr />

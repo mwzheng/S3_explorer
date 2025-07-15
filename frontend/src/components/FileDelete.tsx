@@ -1,59 +1,50 @@
-import React, { useState } from "react";
+import React from "react";
+import Swal from "sweetalert2";
 
 interface FileDeleteProps {
   fileKey: string;
-  onClose: () => void;
+  onDeleteSuccess: () => void;
+  children: React.ReactNode;
 }
 
-const FileDelete: React.FC<FileDeleteProps> = ({ fileKey, onClose }) => {
-  const handleDelete = async () => {
+const FileDelete: React.FC<FileDeleteProps> = ({
+  fileKey,
+  onDeleteSuccess,
+  children,
+}) => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: `Do you want to delete "${fileKey}"?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       const response = await fetch(
         `${
           process.env.REACT_APP_API_ENDPOINT
         }/delete-s3-file/${encodeURIComponent(fileKey)}`,
-        {
-          method: "DELETE",
-        }
+        { method: "DELETE" }
       );
-      if (!response.ok) throw new Error("Failed to delete file");
-      alert("File deleted successfully");
-      onClose(); // Close the modal after deletion
+
+      if (!response.ok) throw new Error("Delete failed");
+
+      await Swal.fire("Deleted!", "Your file has been deleted.", "success");
+      onDeleteSuccess();
     } catch (err) {
-      alert("Failed to delete file");
+      Swal.fire("Error", "Failed to delete file", "error");
     }
   };
 
-  return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white p-6 rounded shadow-lg z-60"
-        onClick={(e) => e.stopPropagation()} // Prevent click-through to close
-      >
-        <h2 className="text-xl font-semibold mb-4">Confirm File Deletion</h2>
-        <p className="mb-4">
-          Are you sure you want to delete the file: <strong>{fileKey}</strong>?
-        </p>
-        <div className="flex justify-center space-x-4">
-          <button
-            onClick={onClose}
-            className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleDelete}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          >
-            Confirm
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return <span onClick={handleDelete}>{children}</span>;
 };
 
 export default FileDelete;
