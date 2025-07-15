@@ -7,7 +7,6 @@ interface FolderDeleteProps {
 
 const FolderDelete: React.FC<FolderDeleteProps> = ({ folderKey, onClose }) => {
   const handleDelete = async () => {
-    console.log(folderKey);
     try {
       const response = await fetch(
         `${

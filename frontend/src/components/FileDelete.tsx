@@ -7,7 +7,6 @@ interface FileDeleteProps {
 
 const FileDelete: React.FC<FileDeleteProps> = ({ fileKey, onClose }) => {
   const handleDelete = async () => {
-    console.log(fileKey);
     try {
       const response = await fetch(
         `${
