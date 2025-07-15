@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import Swal from "sweetalert2";
+
 interface FileUploadProps {
   currentPrefix: string;
   onUploadSuccess: () => void;
@@ -19,14 +21,21 @@ const FileUpload: React.FC<FileUploadProps> = ({
     if (!selectedFile) return;
 
     if (selectedFile.name.startsWith(".")) {
-      alert("Uploading dotfiles is not allowed.");
+      Swal.fire("Error", "Uploading dotfiles is not allowed.", "error");
       return;
     }
 
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("prefix", currentPrefix);
-    console.log("file path:", currentPrefix);
+    Swal.fire({
+      title: "Uploading...",
+      html: `<progress id="upload-progress" value="0" max="100" style="width: 100%"></progress>`,
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
     try {
       const response = await fetch(
@@ -38,11 +47,11 @@ const FileUpload: React.FC<FileUploadProps> = ({
       );
       console.log("File uploaded:", formData);
       if (!response.ok) throw new Error("Upload failed");
-      alert("File uploaded successfully");
+      Swal.fire("Success", "File uploaded successfully!", "success");
       setSelectedFile(null); // Reset file input
       onUploadSuccess();
     } catch (error) {
-      console.error("Error uploading file:", error);
+      Swal.fire("Upload Failed", `${error}`, "error");
     }
   };
 
