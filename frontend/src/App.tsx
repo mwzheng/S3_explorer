@@ -18,22 +18,22 @@ const App: React.FC = () => {
     setShowDeleteModal(true);
   };
 
+  const fetchFiles = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_ENDPOINT}/list-s3-objects?prefix=${currentFolder}`
+      );
+      const data = await response.json();
+
+      // Directly set the response as files, assuming the API response includes both folders and files.
+      setFiles(data);
+      console.log(data);
+    } catch (error) {
+      console.error("Error fetching S3 objects:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchFiles = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_API_ENDPOINT}/list-s3-objects?prefix=${currentFolder}`
-        );
-        const data = await response.json();
-
-        // Directly set the response as files, assuming the API response includes both folders and files.
-        setFiles(data);
-        console.log(data);
-      } catch (error) {
-        console.error("Error fetching S3 objects:", error);
-      }
-    };
-
     fetchFiles();
   }, [currentFolder]);
 
@@ -64,14 +64,23 @@ const App: React.FC = () => {
       <h1 className="text-4xl text-center font-bold mb-4">S3 File Explorer</h1>
 
       <div className="mb-4 flex justify-between items-center">
-        <button
-          onClick={handleGoBack}
-          disabled={breadcrumb.length === 1} // Disable when at root
-          className="p-2 bg-blue-500 text-white rounded"
-        >
-          Go Back
-        </button>
+        <div className="mb-4 flex justify-between items-left gap-2">
+          <button
+            onClick={handleGoBack}
+            disabled={breadcrumb.length === 1} // Disable when at root
+            className="p-2 bg-blue-500 hover:bg-blue-700 text-white rounded"
+          >
+            Go Back
+          </button>
 
+          <button
+            onClick={fetchFiles}
+            className="p-2 bg-blue-500 hover:bg-blue-700 text-white rounded"
+          >
+            {" "}
+            Refresh{" "}
+          </button>
+        </div>
         <button onClick={toggleView} className="p-2 bg-gray-300 rounded">
           {isListView ? "Switch to Grid View" : "Switch to List View"}
         </button>
@@ -94,8 +103,7 @@ const App: React.FC = () => {
           </span>
         ))}
       </div>
-      <FileUpload currentPrefix={currentFolder} />
-
+      <FileUpload currentPrefix={currentFolder} onUploadSuccess={fetchFiles} />
       {files.length === 0 ? null : (
         <S3FileList
           files={files.files.filter((file: any) => !file.Key.endsWith("/"))} // Render files only

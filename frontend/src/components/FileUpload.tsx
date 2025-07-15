@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 interface FileUploadProps {
   currentPrefix: string;
+  onUploadSuccess: () => void;
 }
 
-const FileUpload: React.FC<FileUploadProps> = ({ currentPrefix }) => {
+const FileUpload: React.FC<FileUploadProps> = ({
+  currentPrefix,
+  onUploadSuccess,
+}) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,6 +37,10 @@ const FileUpload: React.FC<FileUploadProps> = ({ currentPrefix }) => {
         }
       );
       console.log("File uploaded:", formData);
+      if (!response.ok) throw new Error("Upload failed");
+      alert("File uploaded successfully");
+      setSelectedFile(null); // Reset file input
+      onUploadSuccess();
     } catch (error) {
       console.error("Error uploading file:", error);
     }
