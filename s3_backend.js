@@ -124,11 +124,12 @@ export async function uploadS3Object(file, prefix = "") {
 export async function deleteS3File(fileKey) {
   const params = {
     Bucket: process.env.BUCKET,
-    Key: fileKey,
+    Delete: {
+      Objects: [{ Key: fileKey }],
+    },
   };
 
-  const command = new DeleteObjectCommand(params);
-
+  const command = new DeleteObjectsCommand(params);
   try {
     await client.send(command);
   } catch (error) {
@@ -140,7 +141,7 @@ export async function deleteS3File(fileKey) {
 export async function deleteS3Folder(folderKey) {
   const listParams = {
     Bucket: process.env.BUCKET,
-    Prefix: folderKey, // must end with "/"
+    Prefix: folderKey,
   };
 
   try {
