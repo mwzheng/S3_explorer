@@ -119,7 +119,10 @@ const App: React.FC = () => {
       {showDeleteModal && (
         <FileDelete
           fileKey={currentFileKey}
-          onClose={() => setShowDeleteModal(false)}
+          onClose={() => {
+            setShowDeleteModal(false);
+            fetchFiles();
+          }}
         />
       )}
       <hr />
