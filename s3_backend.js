@@ -101,13 +101,40 @@ export async function listS3Objects(prefix = "") {
   }
 }
 
-export async function uploadS3Object(file, prefix = "") {
-  const key = `${prefix}${file.originalname}`;
+export async function uploadS3Object(file, prefix = "", fileName) {
+  const key = `${prefix}${fileName}`;
 
   const params = {
     Bucket: process.env.BUCKET,
     Key: key,
-    Body: file.buffer,
+    Body: file?.buffer || "",
+  };
+
+  const command = new PutObjectCommand(params);
+
+  try {
+    await client.send(command);
+    return { message: `Upload successful: ${key}`, key };
+  } catch (error) {
+    console.error("Error uploading file to S3: ", error);
+    throw error;
+  }
+}
+
+export async function uploadS3Folder(
+  userName = "ExampleUser",
+  prefix = "",
+  folderName
+) {
+  const key = `${prefix}${folderName}/.permissions`;
+
+  const defaultPermissions = {};
+  defaultPermissions[userName] = {};
+
+  const params = {
+    Bucket: process.env.BUCKET,
+    Key: key,
+    Body: JSON.stringify(defaultPermissions),
   };
 
   const command = new PutObjectCommand(params);

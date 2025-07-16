@@ -3,6 +3,7 @@ import multer from "multer";
 import {
   listS3Objects,
   uploadS3Object,
+  uploadS3Folder,
   deleteS3File,
   deleteS3Folder,
   getPermissions,
@@ -59,13 +60,33 @@ app.get("/list-folder-details", async (req, res) => {
 app.post("/upload-s3-object", upload.single("file"), async (req, res) => {
   try {
     const prefix = req.body.prefix || "";
-    console.log("Received Prefix: ", prefix);
+    const fileName = req.file?.originalname || req.body.folderName;
 
-    const data = await uploadS3Object(req.file, prefix);
+    if (!fileName) {
+      return res.status(400).send("Missing file name.");
+    }
+
+    const data = await uploadS3Object(req.file, prefix, fileName);
     res.json(data);
   } catch (err) {
     console.error("Error uploading file:", err.stack || err);
     res.status(500).send("Error uploading file: " + err);
+  }
+});
+
+app.post("/create-folder", express.json(), async (req, res) => {
+  try {
+    const { prefix, folderName } = req.body;
+
+    if (!folderName) {
+      return res.status(400).json({ error: "Missing folder name." });
+    }
+
+    await uploadS3Folder("", prefix, folderName);
+    res.status(200).json({ message: `Folder '${folderName}' created.` });
+  } catch (error) {
+    console.error("Error creating folder:", error);
+    res.status(500).json({ error: "Error creating folder" });
   }
 });
 

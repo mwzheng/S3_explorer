@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import S3FileList from "./components/S3FileList";
 import FileUpload from "./components/FileUpload";
+import FolderCreate from "./components/FolderCreate";
 
 const App: React.FC = () => {
   const [files, setFiles] = useState<any>([]);
@@ -93,7 +94,16 @@ const App: React.FC = () => {
           </span>
         ))}
       </div>
-      <FileUpload currentPrefix={currentFolder} onUploadSuccess={fetchFiles} />
+      <div className="mb-4 flex justify-between items-center">
+        <FileUpload
+          currentPrefix={currentFolder}
+          onUploadSuccess={fetchFiles}
+        />
+        <FolderCreate
+          currentPrefix={currentFolder}
+          onCreateSuccess={fetchFiles}
+        />
+      </div>
       {files.length === 0 ? null : (
         <S3FileList
           files={files.files.filter((file: any) => !file.Key.endsWith("/"))} // Render files only
