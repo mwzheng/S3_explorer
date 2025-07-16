@@ -17,7 +17,7 @@ const FileDelete: React.FC<FileDeleteProps> = ({
 
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: `Do you want to delete "${fileKey}"?`,
+      text: `Do you want to delete "${fileKey.split("/").at(-1)}"?`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
