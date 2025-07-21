@@ -74,22 +74,6 @@ const S3FileList: React.FC<S3FileListProps> = ({
     }
   };
 
-  const shareFolder = async (folder: string) => {
-    const response = await fetch(
-      `${process.env.REACT_APP_API_ENDPOINT}/share-folder`,
-      {
-        method: "POST",
-        body: JSON.stringify({ folder }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-  };
-
   const handleShareClick = (folder: string, event: React.MouseEvent) => {
     setSharingFolder(folder);
     setShowShareForm(true);
