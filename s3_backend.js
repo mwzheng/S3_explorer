@@ -21,17 +21,18 @@ const client = new S3Client({
 });
 
 // Helper function to read and update permissions
-export async function getPermissions(folderName) {
+export async function getPermissions(folderName, userName, mode = "read") {
+  console.log("Folder Key: ", folderName);
   const params = {
     Bucket: process.env.BUCKET,
-    Key: `${folderName}/.permissions`, // Ensure correct path
+    Key: `${folderName}/.permissions`,
   };
-  console.log("Fetching permissions with params:", params); // Log the S3 params
+  console.log("Fetching permissions with params:", params);
 
   const command = new GetObjectCommand(params);
   try {
     const response = await client.send(command);
-    console.log("S3 Response:", response); // Log the raw S3 response
+    console.log("S3 Response:", response);
 
     const streamToString = (stream) =>
       new Promise((resolve, reject) => {
@@ -43,9 +44,10 @@ export async function getPermissions(folderName) {
         );
       });
 
-    const bodyContents = await streamToString(response.Body);
-    console.log("Permissions file contents:", bodyContents); // Log file contents
-    return JSON.parse(bodyContents);
+    const content = await streamToString(response.Body);
+    const permissions = JSON.parse(content);
+
+    return permissions?.[userName]?.[mode] === true;
   } catch (error) {
     console.error("Error fetching permissions from S3:", error);
     throw error;
@@ -129,7 +131,7 @@ export async function uploadS3Folder(
   const key = `${prefix}${folderName}/.permissions`;
 
   const defaultPermissions = {};
-  defaultPermissions[userName] = {};
+  defaultPermissions[userName] = { read: true, write: true };
 
   const params = {
     Bucket: process.env.BUCKET,

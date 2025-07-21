@@ -9,7 +9,6 @@ import {
   getPermissions,
   downloadS3Object,
 } from "./s3_backend.js";
-import { checkOwner } from "./checkOwner.js";
 import cors from "cors";
 import e from "express";
 
@@ -26,33 +25,25 @@ app.use(express.urlencoded({ extended: true }));
 
 // Endpoint to list all objects from S3 bucket
 app.get("/list-s3-objects", async (req, res) => {
-  const { prefix } = req.query;
+  const { prefix, user } = req.query;
 
   try {
-    const data = await listS3Objects(prefix);
+    const isAuthorized = await getPermissions(
+      prefix.replace(/\/$/, ""),
+      user,
+      "read"
+    );
+    if (!isAuthorized) {
+      return res
+        .status(403)
+        .json({ error: "Access denied: Read permission required." });
+    }
 
+    const data = await listS3Objects(prefix);
     res.json(data);
   } catch (err) {
     console.error("Error fetching bucket objects:", err);
     res.status(500).send("Error fetching bucket objects: " + err);
-  }
-});
-
-app.get("/list-folder-details", async (req, res) => {
-  let { folderName } = req.query;
-  folderName = decodeURIComponent(folderName); // Explicitly decode the query param
-
-  console.log("Decoded folder name:", folderName);
-
-  try {
-    const permissions = await getPermissions(folderName); // Fetch permissions
-    res.json({
-      owner: permissions.owner,
-      sharedWith: permissions.sharedWith,
-    });
-  } catch (error) {
-    console.error("Error fetching folder details:", error);
-    res.status(500).send("Error fetching folder details: " + error);
   }
 });
 
@@ -82,7 +73,7 @@ app.post("/create-folder", express.json(), async (req, res) => {
       return res.status(400).json({ error: "Missing folder name." });
     }
 
-    await uploadS3Folder("", prefix, folderName);
+    await uploadS3Folder("ExampleUser", prefix, folderName);
     res.status(200).json({ message: `Folder '${folderName}' created.` });
   } catch (error) {
     console.error("Error creating folder:", error);
@@ -111,28 +102,6 @@ app.delete("/delete-s3-file/*", async (req, res) => {
       error: "Error deleting S3 object",
       details: error.message,
     });
-  }
-});
-
-// Sharing the folder (Owner-only)
-app.post("/share-folder", checkOwner, async (req, res) => {
-  const { folderName, sharedWith, permissionType } = req.body; // permissionType can be 'read' or 'write'
-
-  console.log(
-    `> Folder Name: ${folderName}, Shared With: ${sharedWith}, Permission Type: ${permissionType}`
-  );
-
-  try {
-    const permissions = await getPermissions(folderName);
-
-    // Update the permissions JSON file with new user permission
-    permissions.sharedWith[sharedWith] = permissionType;
-
-    await updatePermissions(folderName, permissions);
-    res.send("Folder shared successfully.");
-  } catch (error) {
-    console.error("Error sharing folder:", error);
-    res.status(500).send("Error sharing folder: " + error);
   }
 });
 

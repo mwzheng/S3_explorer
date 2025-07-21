@@ -9,18 +9,28 @@ const App: React.FC = () => {
   const [breadcrumb, setBreadcrumb] = useState<string[]>(["configs"]); // Initialize breadcrumb
   const [isListView, setIsListView] = useState<boolean>(true); // Toggle for view type
 
+  const user = "ExampleUser";
   const fetchFiles = async () => {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_API_ENDPOINT}/list-s3-objects?prefix=${currentFolder}`
+        `${process.env.REACT_APP_API_ENDPOINT}/list-s3-objects?prefix=${currentFolder}&user=${user}`
       );
-      const data = await response.json();
 
-      // Directly set the response as files, assuming the API response includes both folders and files.
+      if (!response.ok) {
+        const errorText = await response.text(); // Parse error message safely
+        throw new Error(`Failed to fetch: ${errorText}`);
+      }
+
+      const data = await response.json();
       setFiles(data);
-      console.log(data);
-    } catch (error) {
-      console.error("Error fetching S3 objects:", error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Error fetching S3 objects:", error.message);
+        alert(error.message);
+      } else {
+        console.error("Unknown error:", error);
+        alert("An unknown error occurred.");
+      }
     }
   };
 
