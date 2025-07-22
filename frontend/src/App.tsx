@@ -9,8 +9,8 @@ const App: React.FC = () => {
   const [currentFolder, setCurrentFolder] = useState<string>("configs/"); // Start at configs folder
   const [breadcrumb, setBreadcrumb] = useState<string[]>(["configs"]); // Initialize breadcrumb
   const [isListView, setIsListView] = useState<boolean>(true); // Toggle for view type
+  const [user, setUser] = useState<string>("ExampleUser");
 
-  const user = "ExampleUser";
   const fetchFiles = async () => {
     try {
       const response = await fetch(
@@ -38,6 +38,22 @@ const App: React.FC = () => {
   useEffect(() => {
     fetchFiles();
   }, [currentFolder]);
+
+  const changeUser = async () => {
+    const { value: userName } = await Swal.fire({
+      title: "Create New Folder",
+      input: "text",
+      inputLabel: "New Username",
+      inputPlaceholder: user,
+      showCancelButton: true,
+      inputValidator: (value) => {
+        if (!value) return "Username cannot be empty";
+        return null;
+      },
+    });
+    setUser(userName);
+    fetchFiles();
+  };
 
   const handleFolderChange = (folder: string) => {
     setCurrentFolder(folder); // Change current folder
@@ -81,6 +97,13 @@ const App: React.FC = () => {
           >
             {" "}
             Refresh{" "}
+          </button>
+          <button
+            onClick={changeUser}
+            className="p-2 bg-blue-500 hover:bg-blue-700 text-white rounded"
+          >
+            {" "}
+            Change User{" "}
           </button>
         </div>
         <button onClick={toggleView} className="p-2 bg-gray-300 rounded">
