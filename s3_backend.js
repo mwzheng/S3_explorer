@@ -22,17 +22,14 @@ const client = new S3Client({
 
 // Helper function to read and update permissions
 export async function getPermissions(folderName, userName, mode = "read") {
-  console.log("Folder Key: ", folderName);
   const params = {
     Bucket: process.env.BUCKET,
     Key: `${folderName}/.permissions`,
   };
-  console.log("Fetching permissions with params:", params);
 
   const command = new GetObjectCommand(params);
   try {
     const response = await client.send(command);
-    console.log("S3 Response:", response);
 
     const streamToString = (stream) =>
       new Promise((resolve, reject) => {
