@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import S3FileList from "./components/S3FileList";
 import FileUpload from "./components/FileUpload";
 import FolderCreate from "./components/FolderCreate";
+import Swal from "sweetalert2";
 
 const App: React.FC = () => {
   const [files, setFiles] = useState<any>([]);
@@ -26,10 +27,10 @@ const App: React.FC = () => {
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Error fetching S3 objects:", error.message);
-        alert(error.message);
+        Swal.fire("Error", error.message, "error");
       } else {
         console.error("Unknown error:", error);
-        alert("An unknown error occurred.");
+        Swal.fire("Error", "An unknown error occurred.", "error");
       }
     }
   };
@@ -108,6 +109,7 @@ const App: React.FC = () => {
         <FileUpload
           currentPrefix={currentFolder}
           onUploadSuccess={fetchFiles}
+          user={user}
         />
         <FolderCreate
           currentPrefix={currentFolder}
