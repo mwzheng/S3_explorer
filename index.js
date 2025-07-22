@@ -52,6 +52,17 @@ app.post("/upload-s3-object", upload.single("file"), async (req, res) => {
   try {
     const prefix = req.body.prefix || "";
     const fileName = req.file?.originalname || req.body.folderName;
+    const user = req.body.user || "";
+    const isAuthorized = await getPermissions(
+      prefix.replace(/\/$/, ""),
+      user,
+      "write"
+    );
+    if (!isAuthorized) {
+      return res
+        .status(403)
+        .json({ error: "Access denied: write permission required." });
+    }
 
     if (!fileName) {
       return res.status(400).send("Missing file name.");

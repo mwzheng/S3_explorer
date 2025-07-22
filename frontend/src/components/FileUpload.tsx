@@ -4,11 +4,13 @@ import Swal from "sweetalert2";
 interface FileUploadProps {
   currentPrefix: string;
   onUploadSuccess: () => void;
+  user: string;
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({
   currentPrefix,
   onUploadSuccess,
+  user,
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -29,6 +31,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("prefix", currentPrefix);
+    formData.append("user", user);
     Swal.fire({
       title: "Uploading...",
       html: "Please do not close or leave this page.",
@@ -47,14 +50,17 @@ const FileUpload: React.FC<FileUploadProps> = ({
           body: formData,
         }
       );
-      console.log("File uploaded:", formData);
-      if (!response.ok) throw new Error("Upload failed");
-      Swal.fire("Success", "File uploaded successfully!", "success");
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+      if (!response.ok) {
+        const error = await response.json();
+        Swal.fire("Upload Failed", `${error.error}`, "error");
+      } else {
+        Swal.fire("Success", "File uploaded successfully!", "success");
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        onUploadSuccess();
       }
-      onUploadSuccess();
     } catch (error) {
       Swal.fire("Upload Failed", `${error}`, "error");
     }
