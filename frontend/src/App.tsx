@@ -28,9 +28,11 @@ const App: React.FC = () => {
       if (error instanceof Error) {
         console.error("Error fetching S3 objects:", error.message);
         Swal.fire("Error", error.message, "error");
+        handleGoBack();
       } else {
         console.error("Unknown error:", error);
         Swal.fire("Error", "An unknown error occurred.", "error");
+        handleGoBack();
       }
     }
   };
@@ -41,7 +43,7 @@ const App: React.FC = () => {
 
   const changeUser = async () => {
     const { value: userName } = await Swal.fire({
-      title: "Create New Folder",
+      title: "Change Username",
       input: "text",
       inputLabel: "New Username",
       inputPlaceholder: user,
