@@ -4,11 +4,13 @@ import Swal from "sweetalert2";
 interface FolderCreateProps {
   currentPrefix: string;
   onCreateSuccess: () => void;
+  user: string;
 }
 
 const FolderCreate: React.FC<FolderCreateProps> = ({
   currentPrefix,
   onCreateSuccess,
+  user,
 }) => {
   const handleCreateFolder = async () => {
     const { value: folderName } = await Swal.fire({
@@ -37,14 +39,18 @@ const FolderCreate: React.FC<FolderCreateProps> = ({
           body: JSON.stringify({
             prefix: currentPrefix,
             folderName,
+            user,
           }),
         }
       );
 
-      if (!response.ok) throw new Error("Folder creation failed");
-
-      Swal.fire("success", "Folder created successfully", "success");
-      onCreateSuccess(); // Refresh file list
+      if (!response.ok) {
+        const error = await response.json();
+        Swal.fire("Error", error.error, "error");
+      } else {
+        Swal.fire("success", "Folder created successfully", "success");
+        onCreateSuccess(); // Refresh file list
+      }
     } catch (error) {
       console.error("Error creating folder:", error);
       Swal.fire("Error", "Failed to create folder", "error");

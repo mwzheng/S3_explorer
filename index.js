@@ -78,13 +78,23 @@ app.post("/upload-s3-object", upload.single("file"), async (req, res) => {
 
 app.post("/create-folder", express.json(), async (req, res) => {
   try {
-    const { prefix, folderName } = req.body;
+    const { prefix, folderName, user } = req.body;
 
     if (!folderName) {
       return res.status(400).json({ error: "Missing folder name." });
     }
+    const isAuthorized = await getPermissions(
+      prefix.replace(/\/$/, ""),
+      user,
+      "write"
+    );
+    if (!isAuthorized) {
+      return res
+        .status(403)
+        .json({ error: "Access denied: write permission required." });
+    }
 
-    await uploadS3Folder("ExampleUser", prefix, folderName);
+    await uploadS3Folder(user, prefix, folderName);
     res.status(200).json({ message: `Folder '${folderName}' created.` });
   } catch (error) {
     console.error("Error creating folder:", error);

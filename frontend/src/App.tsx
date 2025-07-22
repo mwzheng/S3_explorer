@@ -114,6 +114,7 @@ const App: React.FC = () => {
         <FolderCreate
           currentPrefix={currentFolder}
           onCreateSuccess={fetchFiles}
+          user={user}
         />
       </div>
       {files.length === 0 ? null : (
