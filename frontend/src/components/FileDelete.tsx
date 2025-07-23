@@ -4,12 +4,14 @@ import Swal from "sweetalert2";
 interface FileDeleteProps {
   fileKey: string;
   onDeleteSuccess: () => void;
+  user: string;
   children: React.ReactNode;
 }
 
 const FileDelete: React.FC<FileDeleteProps> = ({
   fileKey,
   onDeleteSuccess,
+  user,
   children,
 }) => {
   const handleDelete = async (e: React.MouseEvent) => {
@@ -29,18 +31,25 @@ const FileDelete: React.FC<FileDeleteProps> = ({
 
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_API_ENDPOINT
-        }/delete-s3-file/${encodeURIComponent(fileKey)}`,
-        { method: "DELETE" }
+        `${process.env.REACT_APP_API_ENDPOINT}/delete-s3-file`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ key: fileKey, user }),
+        }
       );
 
-      if (!response.ok) throw new Error("Delete failed");
-
-      await Swal.fire("Deleted!", "Your file has been deleted.", "success");
-      onDeleteSuccess();
+      if (!response.ok) {
+        const error = await response.json();
+        Swal.fire("Delete Failed", `${error.error}`, "error");
+      } else {
+        await Swal.fire("Deleted!", "Your file has been deleted.", "success");
+        onDeleteSuccess();
+      }
     } catch (err) {
-      Swal.fire("Error", "Failed to delete file", "error");
+      Swal.fire("Error", `Failed to delete file: ${err}`, "error");
     }
   };
 

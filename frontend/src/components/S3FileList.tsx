@@ -33,6 +33,7 @@ interface S3FileListProps {
   folders: Folder[];
   onFolderChange: (folderKey: string) => void;
   isListView: boolean;
+  user: string;
   onDeleteSuccess: () => void;
 }
 
@@ -41,6 +42,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
   folders,
   onFolderChange,
   isListView,
+  user,
   onDeleteSuccess,
 }) => {
   const [sharingFolder, setSharingFolder] = useState<string>("");
@@ -202,6 +204,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
                         <FileDelete
                           fileKey={folder.Prefix}
                           onDeleteSuccess={onDeleteSuccess}
+                          user={user}
                         >
                           <FaTrash
                             size={20}
@@ -232,25 +235,21 @@ const S3FileList: React.FC<S3FileListProps> = ({
                     <td className="border px-4 py-2">{file.Size} bytes</td>
                     <td className="border px-4 py-2">
                       <div className="flex items-center space-x-4">
-                        <FaShareAlt
+                        <FaDownload
                           size={20}
-                          className="cursor-pointer text-green-500"
-                          onClick={(e) => handleShareClick(file.Key, e)}
+                          className="cursor-pointer text-blue-500"
+                          onClick={() => handleDownload(file.Key)}
                         />
                         <FileDelete
                           fileKey={file.Key}
                           onDeleteSuccess={onDeleteSuccess}
+                          user={user}
                         >
                           <FaTrash
                             size={20}
                             className="cursor-pointer text-red-500"
                           />
                         </FileDelete>
-                        <FaDownload
-                          size={20}
-                          className="cursor-pointer text-blue-500"
-                          onClick={() => handleDownload(file.Key)}
-                        />
                       </div>
                     </td>
                   </tr>
@@ -283,6 +282,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
                   <FileDelete
                     fileKey={folder.Prefix}
                     onDeleteSuccess={onDeleteSuccess}
+                    user={user}
                   >
                     <FaTrash
                       size={20}
@@ -303,14 +303,15 @@ const S3FileList: React.FC<S3FileListProps> = ({
                 <p>{new Date(file.LastModified).toLocaleString()}</p>
                 <p>{file.Size} bytes</p>
                 <div className="absolute top-0 right-0 flex space-x-2 py-5 mr-3">
-                  <FaShareAlt
+                  <FaDownload
                     size={20}
-                    className="text-green-500 cursor-pointer"
-                    onClick={(e) => handleShareClick(file.Key, e)}
+                    className="cursor-pointer text-blue-500"
+                    onClick={() => handleDownload(file.Key)}
                   />
                   <FileDelete
                     fileKey={file.Key}
                     onDeleteSuccess={onDeleteSuccess}
+                    user={user}
                   >
                     <FaTrash
                       size={20}

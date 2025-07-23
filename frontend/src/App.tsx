@@ -150,6 +150,7 @@ const App: React.FC = () => {
           )} // Render folders only
           onFolderChange={handleFolderChange}
           isListView={isListView}
+          user={user}
           onDeleteSuccess={fetchFiles}
         />
       )}

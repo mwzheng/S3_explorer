@@ -103,17 +103,30 @@ app.post("/create-folder", express.json(), async (req, res) => {
 });
 
 // Endpoint to delete a file from S3
-app.delete("/delete-s3-file/*", async (req, res) => {
-  const key = decodeURIComponent(req.params[0]);
-  console.log(key);
+app.delete("/delete-s3-file", async (req, res) => {
+  const { key, user } = req.body;
+  const prefix = key.substring(0, key.lastIndexOf("/"));
 
   try {
+    const isAuthorized = await getPermissions(
+      prefix.replace(/\/$/, ""),
+      user,
+      "write"
+    );
+    if (!isAuthorized) {
+      return res
+        .status(403)
+        .json({ error: "Access denied: write permission required." });
+    }
+
     if (key.endsWith("/")) {
       // Folder
+      console.log("\nFolder Found\n");
       await deleteS3Folder(key);
       return res.json({ message: "Folder and its contents deleted." });
     } else {
       // Single file
+      console.log("\nFile Found\n");
       await deleteS3File(key);
       return res.json({ message: "File deleted." });
     }
