@@ -105,7 +105,7 @@ const App: React.FC = () => {
             className="p-2 bg-blue-500 hover:bg-blue-700 text-white rounded"
           >
             {" "}
-            Change User{" "}
+            Current User: {user}{" "}
           </button>
         </div>
         <button onClick={toggleView} className="p-2 bg-gray-300 rounded">
