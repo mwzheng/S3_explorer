@@ -16,10 +16,11 @@ const FileDelete: React.FC<FileDeleteProps> = ({
 }) => {
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    const objectName = fileKey.split("/").at(-1) || fileKey.split("/").at(-2);
 
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: `Do you want to delete "${fileKey.split("/").at(-1)}"?`,
+      text: `Do you want to delete "${objectName}"?`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
