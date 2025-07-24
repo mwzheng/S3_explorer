@@ -5,12 +5,12 @@ import FolderCreate from "./components/FolderCreate";
 import Swal from "sweetalert2";
 
 const App: React.FC = () => {
+  const [user, setUser] = useState<string>("ExampleUser");
   const [files, setFiles] = useState<any>([]);
   const [historyStack, setHistoryStack] = useState<string[]>([]);
-  const [currentFolder, setCurrentFolder] = useState<string>("configs/"); // Start at configs folder
-  const [breadcrumb, setBreadcrumb] = useState<string[]>(["configs"]); // Initialize breadcrumb
+  const [currentFolder, setCurrentFolder] = useState<string>(`${user}/`); // Start at configs folder
+  const [breadcrumb, setBreadcrumb] = useState<string[]>([user]); // Initialize breadcrumb
   const [isListView, setIsListView] = useState<boolean>(true); // Toggle for view type
-  const [user, setUser] = useState<string>("ExampleUser");
 
   const fetchFiles = async () => {
     try {
