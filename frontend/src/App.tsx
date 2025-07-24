@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 
 const App: React.FC = () => {
   const [files, setFiles] = useState<any>([]);
+  const [historyStack, setHistoryStack] = useState<string[]>([]);
   const [currentFolder, setCurrentFolder] = useState<string>("configs/"); // Start at configs folder
   const [breadcrumb, setBreadcrumb] = useState<string[]>(["configs"]); // Initialize breadcrumb
   const [isListView, setIsListView] = useState<boolean>(true); // Toggle for view type
@@ -58,21 +59,31 @@ const App: React.FC = () => {
   };
 
   const handleFolderChange = (folder: string) => {
+    if (historyStack.length < 5) {
+      setHistoryStack((prev) => [...prev, currentFolder]);
+    } else {
+      setHistoryStack((prev) => [...prev.slice(1), currentFolder]);
+    }
     setCurrentFolder(folder); // Change current folder
-    const folderName = folder.split("/").slice(-2, -1)[0]; // Get only the last folder name
-    setBreadcrumb((prev) => [...prev, folderName]); // Update breadcrumb
+    console.log(historyStack);
+    // const folderName = folder.split("/").slice(-2, -1)[0]; // Get only the last folder name
+    // setBreadcrumb((prev) => [...prev, folderName]); // Update breadcrumb
+    setBreadcrumb(folder.split("/").filter(Boolean));
   };
 
   const handleGoBack = () => {
-    if (breadcrumb.length > 1) {
-      const newBreadcrumb = breadcrumb.slice(0, -1); // Remove last breadcrumb
-      const parentFolder = `${currentFolder
-        .split("/")
-        .slice(0, -2)
-        .join("/")}/`; // Get parent folder path
-      setCurrentFolder(parentFolder); // Set the current folder to parent
-      setBreadcrumb(newBreadcrumb); // Update the breadcrumb
-    }
+    setHistoryStack((prev) => {
+      if (prev.length === 0) return prev;
+
+      const newHistory = [...prev];
+      const lastFolder = newHistory.pop();
+      console.log(lastFolder);
+      if (lastFolder) {
+        setCurrentFolder(lastFolder);
+        setBreadcrumb(lastFolder.split("/").filter(Boolean));
+      }
+      return newHistory;
+    });
   };
 
   const toggleView = () => {
@@ -87,7 +98,6 @@ const App: React.FC = () => {
         <div className="mb-4 flex justify-between items-left gap-2">
           <button
             onClick={handleGoBack}
-            disabled={breadcrumb.length === 1} // Disable when at root
             className="p-2 bg-blue-500 hover:bg-blue-700 text-white rounded"
           >
             Go Back
@@ -114,21 +124,23 @@ const App: React.FC = () => {
       </div>
 
       <div className="breadcrumb mb-4">
-        {breadcrumb.map((folder, index) => (
-          <span key={index}>
-            <span
-              onClick={() => {
-                const newPath = breadcrumb.slice(0, index + 1).join("/") + "/";
-                setCurrentFolder(newPath);
-                setBreadcrumb(breadcrumb.slice(0, index + 1));
-              }}
-              className="cursor-pointer text-blue-600"
-            >
-              {folder}
+        {breadcrumb.map((folder, index) => {
+          const pathUpTo = breadcrumb.slice(0, index + 1).join("/") + "/";
+
+          return (
+            <span key={index}>
+              <span
+                onClick={() => {
+                  handleFolderChange(pathUpTo);
+                }}
+                className="cursor-pointer text-blue-600"
+              >
+                {folder}
+              </span>
+              {index < breadcrumb.length - 1 && " > "}
             </span>
-            {index < breadcrumb.length - 1 && " > "}
-          </span>
-        ))}
+          );
+        })}
       </div>
       <div className="mb-4 flex justify-between items-center">
         <FileUpload
