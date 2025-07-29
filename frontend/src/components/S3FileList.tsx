@@ -2,14 +2,13 @@ import React, { useState } from "react";
 import {
   FaFolder,
   FaFile,
+  FaExternalLinkAlt,
   FaTrash,
   FaShareAlt,
   FaDownload,
 } from "react-icons/fa";
-import FolderShare from "./FolderShare"; // Adjust the import as necessary
 import FileDelete from "./FileDelete"; // Import the FileDelete component
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import Swal from "sweetalert2";
 
 enum SortOption {
   ALPHABETICAL = "Alphabetical",
@@ -51,8 +50,6 @@ const S3FileList: React.FC<S3FileListProps> = ({
     top: number;
     left: number;
   }>({ top: 0, left: 0 });
-  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
-  const [currentFileKey, setCurrentFileKey] = useState<string>("");
   const [sortOption, setSortOption] = useState<SortOption>(
     SortOption.ALPHABETICAL
   );
@@ -72,17 +69,101 @@ const S3FileList: React.FC<S3FileListProps> = ({
       window.open(url, "_blank"); // or use a programmatic download
     } catch (err) {
       console.error("Download error:", err);
-      toast.error("Download failed.");
+      Swal.fire("Error", "Download failed.", "error");
     }
   };
 
-  const handleShareClick = (folder: string, event: React.MouseEvent) => {
-    setSharingFolder(folder);
-    setShowShareForm(true);
-    const buttonRect = event.currentTarget.getBoundingClientRect();
     setSharePosition({
       top: buttonRect.bottom + window.scrollY,
       left: buttonRect.left,
+          "add-user-btn"
+        ) as HTMLButtonElement;
+        const input = document.getElementById(
+          "username-input"
+        ) as HTMLInputElement;
+        const list = document.getElementById("user-list") as HTMLDivElement;
+
+        const addedUsers = new Set<string>();
+
+        addBtn.onclick = () => {
+          const username = input.value.trim();
+          if (!username || addedUsers.has(username)) {
+            input.value = "";
+            return;
+          }
+
+          addedUsers.add(username);
+
+          const userRow = document.createElement("div");
+          userRow.style.marginTop = "5px";
+          userRow.innerHTML = `
+          <strong>${username}</strong>
+          <label style="margin-left: 10px;"><input type="checkbox" class="read" checked> Read</label>
+          <label style="margin-left: 10px;"><input type="checkbox" class="write"> Write</label>
+          <button class="remove-user" style="margin-left: 10px; color: red;">Remove</button>
+        `;
+
+          userRow.setAttribute("data-username", username);
+          list.appendChild(userRow);
+
+          userRow
+            .querySelector(".remove-user")
+            ?.addEventListener("click", () => {
+              list.removeChild(userRow);
+              addedUsers.delete(username);
+            });
+
+          input.value = "";
+        };
+      },
+      preConfirm: () => {
+        const list = document.getElementById("user-list") as HTMLDivElement;
+        const userDivs = Array.from(list.children);
+        const users = userDivs.map((div) => {
+          const username = div.getAttribute("data-username");
+          const read =
+            (div.querySelector(".read") as HTMLInputElement)?.checked ?? false;
+          const write =
+            (div.querySelector(".write") as HTMLInputElement)?.checked ?? false;
+
+          return { username, permissions: { read, write } };
+        });
+
+        if (users.length === 0) {
+          Swal.showValidationMessage("Please add at least one user.");
+          return;
+        }
+
+        return users;
+      },
+    }).then(async (result) => {
+      if (!result.isConfirmed || !result.value) return;
+
+      const users = result.value;
+      console.log("line 199: ", users);
+
+      try {
+        const res = await fetch(
+          `${process.env.REACT_APP_API_ENDPOINT}/share-folder`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              folderKey,
+              user: user,
+              targets: users, // [{ username: string, permissions: { read, write } }]
+            }),
+          }
+        );
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Sharing failed");
+
+        Swal.fire("Success", "Folder shared successfully!", "success");
+      } catch (err: any) {
+        console.error(err);
+        Swal.fire("Error", err?.message || "Failed to share folder", "error");
+      }
     });
   };
 
@@ -199,7 +280,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
                         <FaShareAlt
                           size={20}
                           className="cursor-pointer text-green-500"
-                          onClick={(e) => handleShareClick(folder.Prefix, e)}
+                          onClick={(e) => handleShareFolder(folder.Prefix)}
                         />
                         <FileDelete
                           fileKey={folder.Prefix}
@@ -254,6 +335,23 @@ const S3FileList: React.FC<S3FileListProps> = ({
                     </td>
                   </tr>
                 ))}
+              {shortcuts.length > 0 && (
+                <>
+                  {shortcuts.map((shortcut) => (
+                    <div
+                      key={shortcut.DisplayName}
+                      className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-2"
+                      onClick={() => onFolderChange(shortcut.Target, true)}
+                    >
+                      <FaExternalLinkAlt className="text-purple-500" />
+                      <span className="text-purple-700 font-medium">
+                        {shortcut.DisplayName}
+                      </span>
+                    </div>
+                  ))}
+                  <hr className="my-2" />
+                </>
+              )}
             </tbody>
           </table>
         </div>
@@ -277,7 +375,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
                   <FaShareAlt
                     size={20}
                     className="text-green-500 cursor-pointer"
-                    onClick={(e) => handleShareClick(folder.Prefix, e)}
+                    onClick={(e) => handleShareFolder(folder.Prefix)}
                   />
                   <FileDelete
                     fileKey={folder.Prefix}

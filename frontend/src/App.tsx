@@ -6,11 +6,13 @@ import Swal from "sweetalert2";
 
 const App: React.FC = () => {
   const [user, setUser] = useState<string>("ExampleUser");
+  const [shortcutRoot, setShortcutRoot] = useState<string | null>(null);
   const [files, setFiles] = useState<any>([]);
   const [historyStack, setHistoryStack] = useState<string[]>([]);
   const [currentFolder, setCurrentFolder] = useState<string>(`${user}/`); // Start at configs folder
   const [breadcrumb, setBreadcrumb] = useState<string[]>([user]); // Initialize breadcrumb
   const [isListView, setIsListView] = useState<boolean>(true); // Toggle for view type
+  const [shortcuts, setShortcuts] = useState<any[]>([]);
 
   const fetchFiles = async () => {
     try {
@@ -58,16 +60,34 @@ const App: React.FC = () => {
     fetchFiles();
   };
 
-  const handleFolderChange = (folder: string) => {
+  const handleFolderChange = (folder: string, isShortcut = false) => {
     if (historyStack.length < 5) {
       setHistoryStack((prev) => [...prev, currentFolder]);
     } else {
       setHistoryStack((prev) => [...prev.slice(1), currentFolder]);
     }
+
+    if (isShortcut) {
+      setShortcutRoot(folder);
+      const displayName = folder.split("/").filter(Boolean).pop()!;
+      setBreadcrumb([displayName]); // Only show the shared folder name
+    } else {
+      if (shortcutRoot && folder.startsWith(shortcutRoot)) {
+        // navigating deeper into shortcut
+        const relPath = folder
+          .replace(shortcutRoot, "")
+          .split("/")
+          .filter(Boolean);
+        const sharedRootName = shortcutRoot.split("/").filter(Boolean).pop()!;
+        setBreadcrumb([sharedRootName, ...relPath]);
+      } else {
+        // normal folder navigation
+        setShortcutRoot(null);
+        setBreadcrumb(folder.split("/").filter(Boolean));
+      }
+    }
     setCurrentFolder(folder); // Change current folder
-    console.log(historyStack);
-    // const folderName = folder.split("/").slice(-2, -1)[0]; // Get only the last folder name
-    // setBreadcrumb((prev) => [...prev, folderName]); // Update breadcrumb
+
     setBreadcrumb(folder.split("/").filter(Boolean));
   };
 
@@ -77,10 +97,21 @@ const App: React.FC = () => {
 
       const newHistory = [...prev];
       const lastFolder = newHistory.pop();
-      console.log(lastFolder);
+
       if (lastFolder) {
         setCurrentFolder(lastFolder);
-        setBreadcrumb(lastFolder.split("/").filter(Boolean));
+        if (shortcutRoot && lastFolder.startsWith(shortcutRoot)) {
+          const rel = lastFolder
+            .replace(shortcutRoot, "")
+            .split("/")
+            .filter(Boolean);
+          const rootName = shortcutRoot.split("/").filter(Boolean).pop()!;
+          setBreadcrumb([rootName, ...rel]);
+        } else {
+          // Exited the shortcut
+          setShortcutRoot(null);
+          setBreadcrumb(lastFolder.split("/").filter(Boolean));
+        }
       }
       return newHistory;
     });
@@ -164,6 +195,7 @@ const App: React.FC = () => {
           isListView={isListView}
           user={user}
           onDeleteSuccess={fetchFiles}
+          currentPrefix={currentFolder}
         />
       )}
       <hr />
