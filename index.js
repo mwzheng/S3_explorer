@@ -40,7 +40,10 @@ app.get("/list-s3-objects", async (req, res) => {
     }
 
     const data = await listS3Objects(prefix);
-    const shortcuts = await getShortcuts(trimmedPrefix);
+    let shortcuts = {};
+    if (trimmedPrefix.endsWith("Shared Folders")) {
+      shortcuts = await getShortcuts(trimmedPrefix);
+    }
 
     res.json({
       ...data,
@@ -126,17 +129,8 @@ app.post("/share-folder", async (req, res) => {
     }
     let newPermissions = currentPermissions;
     for (const { username, permissions } of targets) {
-      // console.log(
-      //   "otherUser: ",
-      //   username,
-      //   "\nread: ",
-      //   permissions.read,
-      //   "\nwrite: ",
-      //   permissions.write
-      // );
       const sharedFolderKey = `${username}/Shared Folders/`;
       let userShortcuts = await getShortcuts(sharedFolderKey);
-      // console.log(userShortcuts);
       if (!userShortcuts) {
         return res
           .status(400)
@@ -149,7 +143,6 @@ app.post("/share-folder", async (req, res) => {
         sharedFolderKey,
         ".shortcuts"
       );
-      // console.log("upload success");
       newPermissions[username] = {
         read: !!permissions.read,
         write: !!permissions.write,

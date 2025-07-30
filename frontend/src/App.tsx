@@ -27,6 +27,7 @@ const App: React.FC = () => {
 
       const data = await response.json();
       setFiles(data);
+      console.log(data);
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Error fetching S3 objects:", error.message);
@@ -191,11 +192,11 @@ const App: React.FC = () => {
           folders={files.folders.filter((file: any) =>
             file.Prefix.endsWith("/")
           )} // Render folders only
+          shortcuts={Object.values(files.shortcuts)}
           onFolderChange={handleFolderChange}
           isListView={isListView}
           user={user}
           onDeleteSuccess={fetchFiles}
-          currentPrefix={currentFolder}
         />
       )}
       <hr />

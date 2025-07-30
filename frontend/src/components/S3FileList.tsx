@@ -27,10 +27,17 @@ interface Folder {
   Prefix: string;
 }
 
+interface Shortcut {
+  path: string;
+  owner: string;
+  name: string | null;
+}
+
 interface S3FileListProps {
   files: File[];
   folders: Folder[];
-  onFolderChange: (folderKey: string) => void;
+  shortcuts: Shortcut[];
+  onFolderChange: (folderKey: string, isShortcut?: boolean) => void;
   isListView: boolean;
   user: string;
   onDeleteSuccess: () => void;
@@ -39,17 +46,12 @@ interface S3FileListProps {
 const S3FileList: React.FC<S3FileListProps> = ({
   files,
   folders,
+  shortcuts,
   onFolderChange,
   isListView,
   user,
   onDeleteSuccess,
 }) => {
-  const [sharingFolder, setSharingFolder] = useState<string>("");
-  const [showShareForm, setShowShareForm] = useState<boolean>(false);
-  const [sharePosition, setSharePosition] = useState<{
-    top: number;
-    left: number;
-  }>({ top: 0, left: 0 });
   const [sortOption, setSortOption] = useState<SortOption>(
     SortOption.ALPHABETICAL
   );
@@ -73,9 +75,20 @@ const S3FileList: React.FC<S3FileListProps> = ({
     }
   };
 
-    setSharePosition({
-      top: buttonRect.bottom + window.scrollY,
-      left: buttonRect.left,
+  const handleShareFolder = async (folderKey: string) => {
+    await Swal.fire({
+      title: "Share Folder",
+      html: `
+      <div>
+        <input id="username-input" class="swal2-input" placeholder="Enter username">
+        <button type="button" id="add-user-btn" class="swal2-confirm swal2-styled" style="margin-left: 8px; padding: 4px 10px;">Add</button>
+        <div id="user-list" style="margin-top: 15px; text-align: left;"></div>
+      </div>
+    `,
+      showCancelButton: true,
+      confirmButtonText: "Share",
+      didOpen: () => {
+        const addBtn = document.getElementById(
           "add-user-btn"
         ) as HTMLButtonElement;
         const input = document.getElementById(
@@ -338,18 +351,26 @@ const S3FileList: React.FC<S3FileListProps> = ({
               {shortcuts.length > 0 && (
                 <>
                   {shortcuts.map((shortcut) => (
-                    <div
-                      key={shortcut.DisplayName}
-                      className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-2"
-                      onClick={() => onFolderChange(shortcut.Target, true)}
-                    >
-                      <FaExternalLinkAlt className="text-purple-500" />
-                      <span className="text-purple-700 font-medium">
-                        {shortcut.DisplayName}
-                      </span>
-                    </div>
+                    <tr key={shortcut.path}>
+                      <td className="border px-4 py-2 text-center">
+                        <FaExternalLinkAlt
+                          size={20}
+                          className="text-purple-500 inline-block"
+                        />
+                      </td>
+                      <td
+                        className="border px-4 py-2 cursor-pointer"
+                        onClick={() => onFolderChange(shortcut.path, true)}
+                      >
+                        {shortcut.name
+                          ? shortcut.name
+                          : shortcut.path.split("/").at(-2)}
+                      </td>
+                      <td className="border px-4 py-2">{"-"}</td>
+                      <td className="border px-4 py-2">-</td>
+                      <td className="border px-4 py-2"></td>
+                    </tr>
                   ))}
-                  <hr className="my-2" />
                 </>
               )}
             </tbody>
