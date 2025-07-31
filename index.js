@@ -130,14 +130,16 @@ app.post("/share-folder", async (req, res) => {
     let newPermissions = currentPermissions;
     for (const { username, permissions } of targets) {
       const sharedFolderKey = `${username}/Shared Folders/`;
-      let userShortcuts = await getShortcuts(sharedFolderKey);
-      if (!userShortcuts) {
+      let userShortcuts = await getShortcuts(
+        sharedFolderKey.replace(/\/$/, "")
+      );
+
+      if (userShortcuts == {}) {
         return res
           .status(400)
           .json({ error: `User ${username} does not exist.` });
       }
       userShortcuts[folderKey] = { path: folderKey, owner: user };
-      console.log("uploading: ", userShortcuts, "to: ", sharedFolderKey);
       await uploadS3Object(
         JSON.stringify(userShortcuts),
         sharedFolderKey,
@@ -148,6 +150,14 @@ app.post("/share-folder", async (req, res) => {
         write: !!permissions.write,
       };
     }
+    const sharedFolderKey = `${user}/Shared Folders/`;
+    let userShortcuts = await getShortcuts(sharedFolderKey.replace(/\/$/, ""));
+    userShortcuts[folderKey] = { path: folderKey, owner: user };
+    await uploadS3Object(
+      JSON.stringify(userShortcuts),
+      sharedFolderKey,
+      ".shortcuts"
+    );
 
     await updatePermissions(folderKey, newPermissions);
     res.json({ message: "Folder shared successfully" });
