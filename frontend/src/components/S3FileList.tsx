@@ -188,10 +188,12 @@ const S3FileList: React.FC<S3FileListProps> = ({
   const sortFilesAndFolders = () => {
     let sortedFolders = [...folders];
     let sortedFiles = [...files];
+    let sortedShortcuts = [...shortcuts];
     switch (sortOption) {
       case SortOption.ALPHABETICAL:
         sortedFolders.sort((a, b) => a.Prefix.localeCompare(b.Prefix));
         sortedFiles.sort((a, b) => a.Key.localeCompare(b.Key));
+        sortedShortcuts.sort((a, b) => a.path.localeCompare(b.path));
         break;
       case SortOption.DATE_MODIFIED:
         sortedFiles.sort(
@@ -222,10 +224,10 @@ const S3FileList: React.FC<S3FileListProps> = ({
       );
     }
 
-    return { sortedFolders, sortedFiles };
+    return { sortedFolders, sortedFiles, sortedShortcuts };
   };
 
-  const { sortedFolders, sortedFiles } = sortFilesAndFolders();
+  const { sortedFolders, sortedFiles, sortedShortcuts } = sortFilesAndFolders();
   return (
     <>
       {/* Search Bar */}
@@ -348,9 +350,9 @@ const S3FileList: React.FC<S3FileListProps> = ({
                     </td>
                   </tr>
                 ))}
-              {shortcuts.length > 0 && (
+              {sortedShortcuts.length > 0 && (
                 <>
-                  {shortcuts.map((shortcut) => (
+                  {sortedShortcuts.map((shortcut) => (
                     <tr key={shortcut.path}>
                       <td className="border px-4 py-2 text-center">
                         <FaExternalLinkAlt
