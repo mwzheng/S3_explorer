@@ -133,7 +133,7 @@ app.post("/share-folder", async (req, res) => {
         sharedFolderKey.replace(/\/$/, "")
       );
 
-      if (userShortcuts == {}) {
+      if (Object.keys(userShortcuts).length === 0) {
         return res
           .status(400)
           .json({ error: `User ${username} does not exist.` });
