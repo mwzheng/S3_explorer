@@ -31,6 +31,7 @@ interface Shortcut {
   path: string;
   owner: string;
   name: string | null;
+  lastModified: string;
 }
 
 interface S3FileListProps {
@@ -156,6 +157,7 @@ const S3FileList: React.FC<S3FileListProps> = ({
       console.log("line 199: ", users);
 
       try {
+        const currentDate = new Date();
         const res = await fetch(
           `${process.env.REACT_APP_API_ENDPOINT}/share-folder`,
           {
@@ -164,7 +166,8 @@ const S3FileList: React.FC<S3FileListProps> = ({
             body: JSON.stringify({
               folderKey,
               user: user,
-              targets: users, // [{ username: string, permissions: { read, write } }]
+              lastModified: currentDate.toLocaleString(),
+              targets: users,
             }),
           }
         );
@@ -200,6 +203,11 @@ const S3FileList: React.FC<S3FileListProps> = ({
           (a, b) =>
             new Date(b.LastModified).getTime() -
             new Date(a.LastModified).getTime()
+        );
+        sortedShortcuts.sort(
+          (a, b) =>
+            new Date(b.lastModified).getTime() -
+            new Date(a.lastModified).getTime()
         );
         break;
       case SortOption.DATE_CREATED:
@@ -368,7 +376,9 @@ const S3FileList: React.FC<S3FileListProps> = ({
                           ? shortcut.name
                           : shortcut.path.split("/").at(-2)}
                       </td>
-                      <td className="border px-4 py-2">{"-"}</td>
+                      <td className="border px-4 py-2">
+                        {shortcut.lastModified}
+                      </td>
                       <td className="border px-4 py-2">-</td>
                       <td className="border px-4 py-2"></td>
                     </tr>

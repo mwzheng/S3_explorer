@@ -111,8 +111,7 @@ app.post("/create-folder", express.json(), async (req, res) => {
 });
 
 app.post("/share-folder", async (req, res) => {
-  const { folderKey, user, targets } = req.body;
-  console.log(targets);
+  const { folderKey, user, lastModified, targets } = req.body;
 
   try {
     const currentPermissions = await getPermissions(
@@ -139,7 +138,12 @@ app.post("/share-folder", async (req, res) => {
           .status(400)
           .json({ error: `User ${username} does not exist.` });
       }
-      userShortcuts[folderKey] = { path: folderKey, owner: user };
+      userShortcuts[folderKey] = {
+        path: folderKey,
+        owner: user,
+        lastModified: lastModified,
+      };
+
       await uploadS3Object(
         JSON.stringify(userShortcuts),
         sharedFolderKey,
@@ -152,7 +156,11 @@ app.post("/share-folder", async (req, res) => {
     }
     const sharedFolderKey = `${user}/Shared Folders/`;
     let userShortcuts = await getShortcuts(sharedFolderKey.replace(/\/$/, ""));
-    userShortcuts[folderKey] = { path: folderKey, owner: user };
+    userShortcuts[folderKey] = {
+      path: folderKey,
+      owner: user,
+      lastModified: lastModified,
+    };
     await uploadS3Object(
       JSON.stringify(userShortcuts),
       sharedFolderKey,
